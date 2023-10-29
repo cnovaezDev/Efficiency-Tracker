@@ -46,6 +46,11 @@ class TaskViewModel @Inject constructor() : ViewModel() {
     }
 
     fun updateTaskCheckState(task: TaskModel) {
+        val index = _taskList.indexOf(task)
+        _taskList[index] = task.copy(isCompleted = !task.isCompleted)
+    }
 
+    fun onItemLongPress(task: TaskModel) {
+        _taskList.removeIf { it.id == task.id }
     }
 }

@@ -1,6 +1,7 @@
 package cnovaez.dev.todoappcompose.add_tasks.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,6 +35,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -100,7 +102,11 @@ fun TaskItem(task: TaskModel, taskViewModel: TaskViewModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp).pointerInput(Unit) {
+                detectTapGestures(onLongPress = {taskViewModel.onItemLongPress(task)}) {
+
+                }
+            }
     ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -153,7 +159,9 @@ fun NewTaskDialg(
     }
     if (show) {
         Dialog(onDismissRequest = { onDismissReques() }) {
-            Card(modifier = Modifier.fillMaxWidth()) {
+            Card(modifier = Modifier
+                .fillMaxWidth()
+            ) {
                 Text(text = "New Task", modifier = Modifier.padding(8.dp))
                 Space(16)
                 TextField(
@@ -166,6 +174,7 @@ fun NewTaskDialg(
                 Button(
                     onClick = {
                         onTaskAdded(taskContent)
+                        taskContent = ""
                     }, modifier = Modifier
                         .align(Alignment.End)
                         .padding(8.dp)
