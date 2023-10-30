@@ -4,7 +4,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,18 +18,23 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.NoteAdd
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.EditCalendar
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -59,6 +66,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import cnovaez.dev.todoappcompose.add_tasks.ui.model.TaskModel
 import cnovaez.dev.todoappcompose.core.DatePickerView
+import cnovaez.dev.todoappcompose.core.TimePickerComponent
 import cnovaez.dev.todoappcompose.utils.MODE_DARK
 import cnovaez.dev.todoappcompose.utils.MODE_LIGHT
 import cnovaez.dev.todoappcompose.utils.getMode
@@ -108,10 +116,7 @@ fun TasksScreen(taskViewModel: TaskViewModel) {
                         onDismissReques = { taskViewModel.hideNewTaskDialog() },
                         onTaskAdded = {
                             taskViewModel.createNewTask(
-                                TaskModel(
-                                    description = it,
-                                    date = displayedDate
-                                )
+                                it
                             )
                         }
 
@@ -144,6 +149,7 @@ fun TasksScreen(taskViewModel: TaskViewModel) {
                             fontWeight = FontWeight.Bold,
                         )
                     }
+
 
                     if (showDatePicker) {
                         DatePickerView(
@@ -188,7 +194,7 @@ fun FilterComponent(taskViewModel: TaskViewModel) {
                     .fillMaxWidth()
                     .padding(start = 4.dp, end = 4.dp, top = 40.dp),
                 containerColor = if (colorTheme) Color.DarkGray else Color.LightGray
-                    
+
             ) {
 
                 Icon(
@@ -196,7 +202,9 @@ fun FilterComponent(taskViewModel: TaskViewModel) {
                     contentDescription = "",
                     modifier = Modifier
                         .padding(start = 8.dp)
-                        .clickable { taskViewModel.showFilter(false) }
+                        .clickable { taskViewModel.showFilter(false) },
+                    tint = if (colorTheme) Color.DarkGray else Color.Black
+
                 )
 
                 //TextField sin el borde exterior
@@ -232,7 +240,9 @@ fun FilterComponent(taskViewModel: TaskViewModel) {
                     contentDescription = "",
                     modifier = Modifier
                         .padding(end = 8.dp)
-                        .clickable { taskViewModel.updateSearchQuery("") })
+                        .clickable { taskViewModel.updateSearchQuery("") },
+                    tint = if (colorTheme) Color.DarkGray else Color.Black
+                )
 
             }
         }
@@ -334,43 +344,175 @@ fun AddTaskFoab(modifier: Modifier, taskViewModel: TaskViewModel) {
 fun NewTaskDialg(
     viewModel: TaskViewModel,
     onDismissReques: () -> Unit,
-    onTaskAdded: (String) -> Unit
+    onTaskAdded: (TaskModel) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val show by viewModel.addTaskDialog.observeAsState(initial = false)
+    val showTimePicker by viewModel.showTimePicker.observeAsState(initial = false)
+    var showDatePicker by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var noteDate by rememberSaveable {
+        mutableStateOf(viewModel.today)
+    }
+    var noteTime by rememberSaveable {
+        mutableStateOf("")
+    }
+    var notify by rememberSaveable {
+        mutableStateOf(false)
+    }
     var taskContent by rememberSaveable {
         mutableStateOf("")
     }
+
+    if (showTimePicker) {
+        TimePickerComponent(taskViewModel = viewModel, onTimeSelected = { noteTime = it })
+    }
+
+    if (showDatePicker) {
+        DatePickerView(
+            selectedDate = viewModel.today, onDateSelection = {
+                noteDate = it
+                showDatePicker = false
+            }, onDismissRequest = {
+                showDatePicker = false
+            })
+    }
+
+
     if (show) {
-        Dialog(onDismissRequest = { onDismissReques() }) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Text(text = "New Task", modifier = Modifier.padding(8.dp))
-                Space(16)
-                TextField(
-                    value = taskContent,
-                    onValueChange = { taskContent = it },
-                    placeholder = { Text(text = "Task Content", color = Color.LightGray) },
-                    modifier = Modifier.padding(8.dp)
-                )
-                Space(i = 16)
-                Button(
-                    onClick = {
-                        if (validateInfo(taskContent)) {
-                            onTaskAdded(taskContent)
-                            taskContent = ""
-                        } else {
-                            scope.launch {
-                                viewModel.snackBarHostState.showSnackbar("Task content can't be empty")
+        //? Task Dialog
+        Space(i = 4)
+        Dialog(onDismissRequest = {
+            if (taskContent.isEmpty()) {
+                onDismissReques()
+                noteDate = viewModel.today
+                noteTime = ""
+                notify = false
+            }
+        }) {
+            Column {
+                if (notify) {
+                    Card(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    ) {
+                        Text(text = "Notify me", modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), fontWeight = FontWeight.Bold)
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            IconButton(onClick = { viewModel.showDatePicker(true) }) {
+                                Icon(
+                                    imageVector = Icons.Filled.EditCalendar,
+                                    contentDescription = "Note Date"
+                                )
                             }
+                            Text(text = noteDate, fontSize = 12.sp)
+                            IconButton(onClick = { viewModel.showTimePicker(true) }) {
+                                Icon(
+                                    imageVector = Icons.Filled.AccessTime,
+                                    contentDescription = "Note Time"
+                                )
+                            }
+                            Text(text = noteTime, fontSize = 12.sp)
+                            Spacer(modifier = Modifier.weight(1f))
                         }
-                    }, modifier = Modifier
-                        .align(Alignment.End)
-                        .padding(8.dp)
+
+                    }
+                }
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
                 ) {
-                    Text(text = "Add Task")
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp)
+                    ) {
+                        Text(
+                            text = "New Task", modifier = Modifier
+                                .padding(8.dp)
+                                .weight(1f),
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        IconButton(onClick = { notify = !notify }) {
+                            Icon(
+                                imageVector = if (notify) Icons.Filled.NotificationsActive else Icons.Filled.NotificationsNone,
+                                contentDescription = "Notifications"
+                            )
+                        }
+
+
+                    }
+                    Space(16)
+                    TextField(
+                        value = taskContent,
+                        onValueChange = { taskContent = it },
+                        placeholder = { Text(text = "Task Content", color = Color.LightGray) },
+                        modifier = Modifier.padding(8.dp),
+                        trailingIcon = {
+                            IconButton(onClick = { taskContent = "" }) {
+                                Icon(imageVector = Icons.Filled.Close, contentDescription = "")
+                            }
+                        },
+                    )
+                    Space(i = 16)
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp, top = 24.dp)
+                    ) {
+
+                        Button(
+                            onClick = {
+                                onDismissReques()
+                                noteDate = viewModel.today
+                                noteTime = ""
+                                notify = false
+                            },
+                            modifier = Modifier
+                                .padding(start = 8.dp),
+                            colors = ButtonColors(
+                                containerColor = Color(0xFFF15D5D),
+                                contentColor = if (viewModel.nightMode.value == true) Color.DarkGray else Color.White,
+                                disabledContentColor = Color.White,
+                                disabledContainerColor = Color(0xFFF15D5D)
+                            )
+                        )
+                        {
+                            Text(text = "Cancel")
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        Button(
+                            onClick = {
+                                if (validateInfo(taskContent)) {
+                                    onTaskAdded(
+                                        TaskModel(
+                                            description = taskContent,
+                                            date = noteDate,
+                                            time = noteTime,
+                                            isCompleted = false,
+                                            notify = notify
+                                        )
+                                    )
+                                    taskContent = ""
+                                } else {
+                                    scope.launch {
+                                        viewModel.snackBarHostState.showSnackbar("Task content can't be empty")
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .padding(end = 8.dp),
+                        ) {
+                            Text(text = "Add Task")
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
                 }
             }
         }

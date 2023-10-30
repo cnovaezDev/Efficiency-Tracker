@@ -36,20 +36,22 @@ class TaskViewModel @Inject constructor(
 
     ) : ViewModel() {
 
+    val selectedTime = MutableLiveData("")
     val searchQuery = MutableLiveData("")
     val snackBarHostState = SnackbarHostState()
-
-
     val today: String by lazy {
         getCurrentDateFormatted()
     }
 
+
     private val _showFilter = MutableLiveData(false)
+
     private var _showAddTaskDialog = MutableLiveData<Boolean>()
     private var _nightMode = MutableLiveData<Boolean>()
     private var _taskList = mutableStateListOf<TaskModel>()
     private var _displayedDate = MutableLiveData<String>()
     private var _showDatePicker = MutableLiveData<Boolean>()
+    private val _showTimePicker = MutableLiveData<Boolean>()
 
     init {
         loadTasksList()
@@ -70,6 +72,9 @@ class TaskViewModel @Inject constructor(
 
     val showDatePicker: LiveData<Boolean>
         get() = _showDatePicker
+
+    val showTimePicker: LiveData<Boolean>
+        get() = _showTimePicker
 
     fun showNewTaskDialog() {
         _showAddTaskDialog.value = true
@@ -147,6 +152,10 @@ class TaskViewModel @Inject constructor(
 
     fun showFilter(value: Boolean) {
         _showFilter.value = value
+    }
+
+    fun showTimePicker(value: Boolean) {
+        _showTimePicker.value = value
     }
 
     fun updateSearchQuery(filter: String) {
