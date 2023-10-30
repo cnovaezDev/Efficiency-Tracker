@@ -7,6 +7,10 @@ import android.content.Context
  ** cnovaez.dev@outlook.com
  **/
 
+const val CHANNEL_ID = "productivity_app_channel"
+const val defaultValueTimer = "-- : --"
+var NOTIFICATION_ID = 1
+
 const val MODE_LIGHT = 0
 const val MODE_DARK = 1
 

@@ -92,4 +92,8 @@ dependencies {
 
     //Timber
     implementation("com.jakewharton.timber:timber:5.0.1")
+
+    //Notifications with work manager
+    implementation("androidx.work:work-runtime-ktx:2.7.0")
+
 }

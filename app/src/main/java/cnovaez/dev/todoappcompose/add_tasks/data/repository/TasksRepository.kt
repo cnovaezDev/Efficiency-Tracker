@@ -13,7 +13,7 @@ class TasksRepository @Inject constructor(
     private val tasksDao: TasksDao
 ) {
 
-    suspend fun insertTask(taskEntity: TaskEntity) {
+    suspend fun insertTask(taskEntity: TaskEntity){
         try {
             tasksDao.insertTask(taskEntity)
         } catch (e: Exception) {
@@ -71,6 +71,16 @@ class TasksRepository @Inject constructor(
             e.printStackTrace()
             LogError("Error getting task by filter", e)
             emptyList()
+        }
+    }
+
+    suspend fun getRowId(id: Long): Int {
+        return try {
+            tasksDao.getRowId(id) ?: 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            LogError("Error getting row id", e)
+            0
         }
     }
 }

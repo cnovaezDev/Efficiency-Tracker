@@ -16,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -45,10 +44,28 @@ import java.util.Locale
  **/
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun TimePickerComponent(taskViewModel: TaskViewModel, onTimeSelected: (String) -> Unit) {
+fun TimePickerComponent(
+    taskViewModel: TaskViewModel,
+    onTimeSelected: (String) -> Unit,
+    noteTime: String
+) {
     val showTimePicker by taskViewModel.showTimePicker.observeAsState(false)
+    var initialHour = -1
+    var initialMinutes = -1
+    //Add the noteTime to the timePickerState
+    if (noteTime.isNotEmpty()) {
+        val cal = Calendar.getInstance()
+        val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        cal.time = formatter.parse(noteTime)!!
+        initialHour = cal.get(Calendar.HOUR_OF_DAY)
+        initialMinutes = cal.get(Calendar.MINUTE)
+    }
+    val state = if (initialHour != -1 && initialMinutes != -1) {
+        rememberTimePickerState(initialHour = initialHour, initialMinute = initialMinutes)
+    } else {
+        rememberTimePickerState()
+    }
 
-    val state = rememberTimePickerState()
     val formatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
     val showingPicker = remember { mutableStateOf(true) }
     val configuration = LocalConfiguration.current

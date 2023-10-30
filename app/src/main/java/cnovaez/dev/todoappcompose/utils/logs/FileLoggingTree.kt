@@ -3,7 +3,9 @@ package cnovaez.dev.todoappcompose.utils.logs
 import android.content.Context
 import android.util.Log
 import timber.log.Timber
-import java.util.*
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  ** Created by Carlos A. Novaez Guerrero on 3/9/2023 8:09 AM
@@ -13,7 +15,8 @@ import java.util.*
 class FileLoggingTree(private val context: Context) : Timber.Tree() {
 
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        //   val formattedMessage = String.format("%s: %s\n", getDateAndTime(), " DEBUG: $message")
+        val formattedMessage = String.format("%s: %s\n", getDateAndTime(), " DEBUG: $message")
+        Log.i("DEBUG: ", formattedMessage)
         when (priority) {
             Log.DEBUG -> {
 //                Log.d("DEBUG: ", formattedMessage)
@@ -41,6 +44,12 @@ class FileLoggingTree(private val context: Context) : Timber.Tree() {
             }
         }
 //        writeLogsToFile(context, formattedMessage)
+    }
+
+
+    fun getDateAndTime(): String {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        return dateFormat.format(Date())
     }
 
 

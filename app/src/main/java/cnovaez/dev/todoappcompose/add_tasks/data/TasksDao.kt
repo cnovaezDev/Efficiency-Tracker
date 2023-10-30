@@ -32,4 +32,8 @@ interface TasksDao {
 
     @Query("SELECT * FROM tasks WHERE description LIKE '%' || :filter || '%' AND date_of_note = :date")
     suspend fun getTaskByFilter(filter: String, date: String): List<TaskEntity>?
+
+    //get rowid by task id
+    @Query("SELECT rowid FROM tasks WHERE id = :id")
+    suspend fun getRowId(id: Long): Int?
 }

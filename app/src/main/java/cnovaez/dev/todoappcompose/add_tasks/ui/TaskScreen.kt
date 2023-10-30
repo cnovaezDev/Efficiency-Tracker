@@ -69,6 +69,7 @@ import cnovaez.dev.todoappcompose.core.DatePickerView
 import cnovaez.dev.todoappcompose.core.TimePickerComponent
 import cnovaez.dev.todoappcompose.utils.MODE_DARK
 import cnovaez.dev.todoappcompose.utils.MODE_LIGHT
+import cnovaez.dev.todoappcompose.utils.defaultValueTimer
 import cnovaez.dev.todoappcompose.utils.getMode
 import cnovaez.dev.todoappcompose.utils.setMode
 import kotlinx.coroutines.launch
@@ -116,7 +117,8 @@ fun TasksScreen(taskViewModel: TaskViewModel) {
                         onDismissReques = { taskViewModel.hideNewTaskDialog() },
                         onTaskAdded = {
                             taskViewModel.createNewTask(
-                                it
+                                it,
+                                context
                             )
                         }
 
@@ -266,7 +268,7 @@ fun TaskList(taskViewModel: TaskViewModel) {
                 ) {
                     Space(i = 8)
                     Text(
-                        text = (if (isCompleted) "Tasks Completed " else "Tasks Pending ") + "${
+                        text = (if (isCompleted) "Tasks Completed Today: " else "Tasks Pending for Today: ") + "${
                             ((tasks.size * 100) / taskViewModel.taskList.size).toDouble()
                                 .roundToInt()
 
@@ -349,16 +351,19 @@ fun NewTaskDialg(
     val scope = rememberCoroutineScope()
     val show by viewModel.addTaskDialog.observeAsState(initial = false)
     val showTimePicker by viewModel.showTimePicker.observeAsState(initial = false)
-    var showDatePicker by rememberSaveable {
+    var showDateSelection by rememberSaveable {
         mutableStateOf(false)
     }
     var noteDate by rememberSaveable {
         mutableStateOf(viewModel.today)
     }
     var noteTime by rememberSaveable {
-        mutableStateOf("")
+        mutableStateOf(defaultValueTimer)
     }
     var notify by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var errorState by rememberSaveable {
         mutableStateOf(false)
     }
     var taskContent by rememberSaveable {
@@ -366,16 +371,16 @@ fun NewTaskDialg(
     }
 
     if (showTimePicker) {
-        TimePickerComponent(taskViewModel = viewModel, onTimeSelected = { noteTime = it })
+        TimePickerComponent(taskViewModel = viewModel, onTimeSelected = { noteTime = it }, noteTime)
     }
 
-    if (showDatePicker) {
+    if (showDateSelection) {
         DatePickerView(
-            selectedDate = viewModel.today, onDateSelection = {
+            selectedDate = noteDate, onDateSelection = {
                 noteDate = it
-                showDatePicker = false
+                showDateSelection = false
             }, onDismissRequest = {
-                showDatePicker = false
+                showDateSelection = false
             })
     }
 
@@ -398,13 +403,17 @@ fun NewTaskDialg(
                             .fillMaxWidth()
                             .padding(bottom = 8.dp)
                     ) {
-                        Text(text = "Notify me", modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp), fontWeight = FontWeight.Bold)
+                        Text(
+                            text = "Notify me",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            fontWeight = FontWeight.Bold
+                        )
                         Row(
                             Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            IconButton(onClick = { viewModel.showDatePicker(true) }) {
+                            IconButton(onClick = { showDateSelection = true }) {
                                 Icon(
                                     imageVector = Icons.Filled.EditCalendar,
                                     contentDescription = "Note Date"
@@ -451,7 +460,12 @@ fun NewTaskDialg(
                     Space(16)
                     TextField(
                         value = taskContent,
-                        onValueChange = { taskContent = it },
+                        onValueChange = {
+                            taskContent = it
+                            if(taskContent.trim().isNotEmpty() && taskContent.trim().isNotBlank()){
+                                errorState = false
+                            }
+                        },
                         placeholder = { Text(text = "Task Content", color = Color.LightGray) },
                         modifier = Modifier.padding(8.dp),
                         trailingIcon = {
@@ -459,6 +473,8 @@ fun NewTaskDialg(
                                 Icon(imageVector = Icons.Filled.Close, contentDescription = "")
                             }
                         },
+                        isError = errorState,
+
                     )
                     Space(i = 16)
                     Row(
@@ -489,18 +505,27 @@ fun NewTaskDialg(
                         Spacer(modifier = Modifier.weight(1f))
                         Button(
                             onClick = {
-                                if (validateInfo(taskContent)) {
-                                    onTaskAdded(
-                                        TaskModel(
-                                            description = taskContent,
-                                            date = noteDate,
-                                            time = noteTime,
-                                            isCompleted = false,
-                                            notify = notify
+                                if (validateContent(taskContent)) {
+                                    if((notify && validateNotificationTime(noteTime)) || !notify){
+                                        onTaskAdded(
+                                            TaskModel(
+                                                description = taskContent,
+                                                date = noteDate,
+                                                time = noteTime,
+                                                isCompleted = false,
+                                                notify = notify
+                                            )
                                         )
-                                    )
-                                    taskContent = ""
+
+                                        taskContent = ""
+                                    } else {
+                                        errorState = true
+                                        scope.launch {
+                                            viewModel.snackBarHostState.showSnackbar("Task time can't be empty")
+                                        }
+                                    }
                                 } else {
+                                    errorState = true
                                     scope.launch {
                                         viewModel.snackBarHostState.showSnackbar("Task content can't be empty")
                                     }
@@ -519,7 +544,9 @@ fun NewTaskDialg(
     }
 }
 
-fun validateInfo(taskContent: String) = taskContent.isNotEmpty()
+fun validateContent(taskContent: String) = taskContent.isNotEmpty()
+fun validateNotificationTime(time: String) = time != defaultValueTimer
+
 
 @Composable
 fun Space(i: Int) {
