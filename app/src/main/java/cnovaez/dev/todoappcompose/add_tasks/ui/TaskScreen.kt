@@ -15,7 +15,6 @@ import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.EditCalendar
 import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +36,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cnovaez.dev.todoappcompose.add_tasks.ui.components.CustomSnackBar
 import cnovaez.dev.todoappcompose.add_tasks.ui.components.FilterComponent
 import cnovaez.dev.todoappcompose.add_tasks.ui.components.NewTaskDialg
 import cnovaez.dev.todoappcompose.add_tasks.ui.components.TaskList
@@ -44,8 +44,8 @@ import cnovaez.dev.todoappcompose.core.AddBannerComponent
 import cnovaez.dev.todoappcompose.core.DatePickerView
 import cnovaez.dev.todoappcompose.utils.MODE_DARK
 import cnovaez.dev.todoappcompose.utils.MODE_LIGHT
-import cnovaez.dev.todoappcompose.utils.defaultValueTimer
 import cnovaez.dev.todoappcompose.utils.getMode
+import cnovaez.dev.todoappcompose.utils.logs.LogInfo
 import cnovaez.dev.todoappcompose.utils.setMode
 
 /**
@@ -61,6 +61,12 @@ fun TasksScreen(taskViewModel: TaskViewModel) {
     val showDatePicker by taskViewModel.showDatePicker.observeAsState(initial = false)
     val displayedDate by taskViewModel.displayedDate.observeAsState(initial = taskViewModel.today)
     val snackBarHostState = taskViewModel.snackBarHostState
+    val snackBarVisible by taskViewModel.showDeleteSnackBar.observeAsState(
+        initial = Pair(
+            false,
+            null
+        )
+    )
 
     MaterialTheme(
         colorScheme = if (nightMode) darkColorScheme() else lightColorScheme(),
@@ -70,7 +76,12 @@ fun TasksScreen(taskViewModel: TaskViewModel) {
 
 
             Scaffold(
-                snackbarHost = { SnackbarHost(hostState = snackBarHostState,  modifier = Modifier.statusBarsPadding()) },
+                snackbarHost = {
+                    SnackbarHost(
+                        hostState = snackBarHostState,
+                        modifier = Modifier.statusBarsPadding()
+                    )
+                },
                 bottomBar = {
                     AddBannerComponent(
                         adId = "ca-app-pub-3940256099942544/6300978111"
@@ -98,10 +109,11 @@ fun TasksScreen(taskViewModel: TaskViewModel) {
                     NewTaskDialg(
                         viewModel = taskViewModel,
                         onDismissReques = { taskViewModel.hideNewTaskDialog() },
-                        onTaskAdded = {
+                        onTaskAdded = { pair->
                             taskViewModel.createNewTask(
-                                it,
-                                context
+                                pair.first,
+                                context,
+                                pair.second
                             )
                         }
 
@@ -149,6 +161,30 @@ fun TasksScreen(taskViewModel: TaskViewModel) {
 
 
                     FilterComponent(taskViewModel)
+
+                    if (snackBarVisible.first) {
+                        Row(modifier = Modifier.align(Alignment.BottomCenter)) {
+                            CustomSnackBar(
+                                taskViewModel = taskViewModel,
+                                message = "Note ${snackBarVisible.second?.description} deleted",
+                                actionLabel = "Undo",
+                                duration = 5000,
+                                onActionClick = {
+                                    LogInfo("Undo Clicked")
+                                    taskViewModel.reloadTasksList()
+                                },
+                                onDismiss = {
+                                    LogInfo("SnackBar Dismissed")
+                                    snackBarVisible.second?.let { task ->
+                                        taskViewModel.deleteTask(task)
+                                    }
+                                    taskViewModel.showDeleteSnackBar(false)
+                                }
+                            )
+
+                        }
+                    }
+
 
                 }
             }

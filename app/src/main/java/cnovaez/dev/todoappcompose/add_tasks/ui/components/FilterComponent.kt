@@ -37,22 +37,22 @@ fun FilterComponent(taskViewModel: TaskViewModel) {
 
     val colorTheme by taskViewModel.nightMode.observeAsState(initial = false)
     if (!showFilter) {
-       Row {
-           Icon(
-               imageVector = Icons.Filled.Search,
-               contentDescription = "Search",
-               modifier = Modifier
-                   .padding(start = 8.dp, top = 48.dp)
-                   .clickable { taskViewModel.showFilter(true) }
-           )
-           Icon(
-               imageVector = Icons.Filled.AutoGraph,
-               contentDescription = "Statistics",
-               modifier = Modifier
-                   .padding(start = 8.dp, top = 48.dp)
-                   .clickable {  }
-           )
-       }
+        Row {
+            Icon(
+                imageVector = Icons.Filled.Search,
+                contentDescription = "Search",
+                modifier = Modifier
+                    .padding(start = 8.dp, top = 48.dp)
+                    .clickable { taskViewModel.showFilter(true) }
+            )
+            Icon(
+                imageVector = Icons.Filled.AutoGraph,
+                contentDescription = "Statistics",
+                modifier = Modifier
+                    .padding(start = 8.dp, top = 48.dp)
+                    .clickable { }
+            )
+        }
 
     } else {
         Row(Modifier.fillMaxWidth()) {
@@ -60,7 +60,7 @@ fun FilterComponent(taskViewModel: TaskViewModel) {
                 Modifier
                     .fillMaxWidth()
                     .padding(start = 4.dp, end = 4.dp, top = 40.dp),
-                containerColor = if (colorTheme) Color.DarkGray else Color.LightGray
+                containerColor = Color.LightGray
 
             ) {
 
@@ -82,7 +82,7 @@ fun FilterComponent(taskViewModel: TaskViewModel) {
                         Text(
                             text = "Search",
                             fontSize = 10.sp,
-                            color = if (colorTheme) Color.DarkGray else Color.LightGray,
+                            color = Color.DarkGray,
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                     },
@@ -107,7 +107,13 @@ fun FilterComponent(taskViewModel: TaskViewModel) {
                     contentDescription = "",
                     modifier = Modifier
                         .padding(end = 8.dp)
-                        .clickable { taskViewModel.updateSearchQuery("") },
+                        .clickable {
+                            if (searchQuery.isNotEmpty()) {
+                                taskViewModel.updateSearchQuery("")
+                            } else {
+                                taskViewModel.showFilter(false)
+                            }
+                        },
                     tint = if (colorTheme) Color.DarkGray else Color.Black
                 )
 

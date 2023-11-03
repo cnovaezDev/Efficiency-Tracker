@@ -52,10 +52,11 @@ import cnovaez.dev.todoappcompose.utils.validateNotificationTime
 fun NewTaskDialg(
     viewModel: TaskViewModel,
     onDismissReques: () -> Unit,
-    onTaskAdded: (TaskModel) -> Unit
+    onTaskAdded: (Pair<TaskModel, Boolean>) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val show by viewModel.addTaskDialog.observeAsState(initial = false)
+    val show by viewModel.addTaskDialog.observeAsState(initial = Pair(false, null))
+
     val showTimePicker by viewModel.showTimePicker.observeAsState(initial = false)
     var showDateSelection by rememberSaveable {
         mutableStateOf(false)
@@ -110,7 +111,16 @@ fun NewTaskDialg(
     }
 
 
-    if (show) {
+    var id = System.currentTimeMillis()
+    if (show.first) {
+        if (!showDateSelection && !showTimePicker && show.second != null) {
+            noteDate = show.second!!.date
+            noteTime = show.second!!.time
+            notify = show.second!!.notify
+            taskContent = show.second!!.description
+            id = show.second!!.id
+        }
+
         //? Task Dialog
         Space(i = 4)
         Dialog(onDismissRequest = {
@@ -132,14 +142,18 @@ fun NewTaskDialg(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            IconButton(onClick = { showDateSelection = true }) {
+                            IconButton(onClick = {
+                                showDateSelection = true
+                            }) {
                                 Icon(
                                     imageVector = Icons.Filled.EditCalendar,
                                     contentDescription = "Note Date"
                                 )
                             }
                             Text(text = noteDate, fontSize = 12.sp)
-                            IconButton(onClick = { viewModel.showTimePicker(true) }) {
+                            IconButton(onClick = {
+                                viewModel.showTimePicker(true)
+                            }) {
                                 Icon(
                                     imageVector = Icons.Filled.AccessTime,
                                     contentDescription = "Note Time",
@@ -235,14 +249,18 @@ fun NewTaskDialg(
                                 if (validateContent(taskContent)) {
                                     if ((notify && validateNotificationTime(noteTime)) || !notify) {
                                         onTaskAdded(
-                                            TaskModel(
-                                                description = taskContent,
-                                                date = noteDate,
-                                                time = noteTime,
-                                                isCompleted = false,
-                                                notify = notify
+                                            Pair(
+                                                TaskModel(
+                                                    id = id,
+                                                    description = taskContent,
+                                                    date = noteDate,
+                                                    time = noteTime,
+                                                    isCompleted = false,
+                                                    notify = notify
+                                                ), show.second != null
                                             )
                                         )
+
                                         restarData = true
                                     } else {
                                         viewModel.updateErrorStateTimer(true)

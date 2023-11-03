@@ -1,8 +1,10 @@
 package cnovaez.dev.todoappcompose.add_tasks.ui
 
+import android.app.NotificationManager
 import android.content.Context
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,6 +15,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import cnovaez.dev.todoappcompose.add_tasks.ui.model.TaskModel
+import cnovaez.dev.todoappcompose.add_tasks.use_cases.DeleteTaskByIdUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.DeleteTaskUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetRowIdUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetTaskByIdUseCase
@@ -32,6 +35,7 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+
 /**
  ** Created by Carlos A. Novaez Guerrero on 10/28/2023 5:09 PM
  ** cnovaez.dev@outlook.com
@@ -40,6 +44,7 @@ import javax.inject.Inject
 class TaskViewModel @Inject constructor(
     private val insertTaskUseCase: InsertTaskUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
+    private val deleteTaskByIdUseCase: DeleteTaskByIdUseCase,
     private val getTasksUseCase: GetTasksUseCase,
     private val getTaskByIdUseCase: GetTaskByIdUseCase,
     private val updateTaskUseCase: UpdateTaskUseCase,
@@ -60,7 +65,7 @@ class TaskViewModel @Inject constructor(
 
     private val _showFilter = MutableLiveData(false)
 
-    private var _showAddTaskDialog = MutableLiveData<Boolean>()
+    private var _showAddTaskDialog = MutableLiveData<Pair<Boolean, TaskModel?>>()
     private var _nightMode = MutableLiveData<Boolean>()
     private var _taskList = mutableStateListOf<TaskModel>()
     private var _displayedDate = MutableLiveData<String>()
@@ -69,6 +74,8 @@ class TaskViewModel @Inject constructor(
     private val _errorState = MutableLiveData<Boolean>()
     private val _errorStateTimer = MutableLiveData<Boolean>()
 
+    private val _showDeleteSnackBar = MutableLiveData<Pair<Boolean, TaskModel?>>()
+
 
     init {
         loadTasksList()
@@ -76,7 +83,7 @@ class TaskViewModel @Inject constructor(
 
     val showFilter: LiveData<Boolean>
         get() = _showFilter
-    val addTaskDialog: LiveData<Boolean>
+    val addTaskDialog: LiveData<Pair<Boolean, TaskModel?>>
         get() = _showAddTaskDialog
 
     val nightMode: LiveData<Boolean>
@@ -97,25 +104,33 @@ class TaskViewModel @Inject constructor(
     val errorStateTimer: LiveData<Boolean>
         get() = _errorStateTimer
 
-    fun showNewTaskDialog() {
-        _showAddTaskDialog.value = true
+    val showDeleteSnackBar: LiveData<Pair<Boolean, TaskModel?>>
+        get() = _showDeleteSnackBar
+
+    fun showNewTaskDialog(task: TaskModel? = null) {
+        _showAddTaskDialog.value = Pair(true, task)
     }
 
     fun hideNewTaskDialog() {
-        _showAddTaskDialog.value = false
+        _showAddTaskDialog.value = Pair(false, null)
     }
 
     fun toggleNightMode(value: Boolean) {
         _nightMode.value = value
     }
 
-    fun createNewTask(taskModel: TaskModel, context: Context) {
+    fun createNewTask(taskModel: TaskModel, context: Context, edit: Boolean) {
 
         viewModelScope.launch {
-            insertTaskUseCase(taskModel.toEntity())
+            if (!edit) {
+                insertTaskUseCase(taskModel.toEntity())
+            } else {
+                updateTaskUseCase(taskModel.toEntity())
+            }
             val notificationId = getRowIdUseCase(taskModel.id)
             loadTasksList()
             if (taskModel.notify) {
+                cancelExistingNotification(notificationId, context)
                 scheduleNotification(
                     taskModel.date,
                     taskModel.time,
@@ -126,6 +141,16 @@ class TaskViewModel @Inject constructor(
             }
         }
         hideNewTaskDialog()
+    }
+
+
+    /**
+     * Cancel any existing notification with the ID passed as param.
+     */
+    private fun cancelExistingNotification(notificationId: Int, context: Context) {
+        val notificationManager =
+            getSystemService(context, NotificationManager::class.java) as NotificationManager
+        notificationManager.cancel(notificationId)
     }
 
     private fun loadTasksList() {
@@ -282,8 +307,14 @@ class TaskViewModel @Inject constructor(
     fun updateErrorState(b: Boolean) {
         _errorState.value = b
     }
+
     fun updateErrorStateTimer(b: Boolean) {
         _errorStateTimer.value = b
     }
+
+    fun showDeleteSnackBar(b: Boolean, task: TaskModel? = null) {
+        _showDeleteSnackBar.value = Pair(b, task)
+    }
+
 
 }

@@ -15,8 +15,19 @@ interface TasksDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(taskEntity: TaskEntity)
 
-    @Query("UPDATE tasks SET description = :description, is_completed = :isCompleted WHERE id = :id")
-    suspend fun updateTask(id: Long, description: String, isCompleted: Boolean)
+    @Query("UPDATE tasks SET description = :description, is_completed = :isCompleted, date_of_note = :date, time_of_note = :time, secret_task = :secretTask, notify = :notify WHERE id = :id")
+    suspend fun updateTask(
+        id: Long,
+        description: String,
+        isCompleted: Boolean,
+        date: String,
+        time: String,
+        secretTask: Boolean,
+        notify: Boolean
+    )
+
+    @Query("DELETE FROM tasks WHERE id = :taskId")
+    suspend fun deleteTaskById(taskId: String)
 
     @Delete
     suspend fun deleteTask(taskEntity: TaskEntity)
