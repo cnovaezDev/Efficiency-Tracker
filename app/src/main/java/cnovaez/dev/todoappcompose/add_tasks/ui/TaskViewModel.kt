@@ -1,5 +1,7 @@
 package cnovaez.dev.todoappcompose.add_tasks.ui
 
+import android.content.Context
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,6 +14,16 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import cnovaez.dev.todoappcompose.add_tasks.ui.TasksUiState.Success
 import cnovaez.dev.todoappcompose.add_tasks.ui.model.TaskModel
+import cnovaez.dev.todoappcompose.add_tasks.use_cases.DeleteTaskUseCase
+import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetRowIdUseCase
+import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetTaskByIdUseCase
+import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetTasksByFilterUseCase
+import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetTasksUseCase
+import cnovaez.dev.todoappcompose.add_tasks.use_cases.InsertTaskUseCase
+import cnovaez.dev.todoappcompose.add_tasks.use_cases.UpdateTaskUseCase
+import cnovaez.dev.todoappcompose.utils.logs.LogError
+import cnovaez.dev.todoappcompose.utils.logs.LogInfo
+import cnovaez.dev.todoappcompose.utils.notifications.NotificationWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,10 +43,6 @@ import javax.inject.Inject
  ** cnovaez.dev@outlook.com
  **/
 @HiltViewModel
-class TaskViewModel @Inject constructor() : ViewModel() {
-    private var _showAddTaskDialog = MutableLiveData<Boolean>()
-    private var _nightMode = MutableLiveData<Boolean>()
-    private var _taskList = mutableStateListOf<TaskModel>()
 class TaskViewModel @Inject constructor(
     private val insertTaskUseCase: InsertTaskUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
@@ -47,11 +55,10 @@ class TaskViewModel @Inject constructor(
 
     ) : ViewModel() {
 
-    val uiState: StateFlow<TasksUiState> = getTasksUseCase()
+  val uiState: StateFlow<TasksUiState> = getTasksUseCase()
         .map(::Success)
         .catch { TasksUiState.Error(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TasksUiState.Loading)
-
 
     val selectedTime = MutableLiveData("")
     val searchQuery = MutableLiveData("")
@@ -65,13 +72,20 @@ class TaskViewModel @Inject constructor(
 
     private var _showAddTaskDialog = MutableLiveData<Boolean>()
     private var _nightMode = MutableLiveData<Boolean>()
- //   private var _taskList = mutableStateListOf<TaskModel>()
+    private var _taskList = mutableStateListOf<TaskModel>()
     private var _displayedDate = MutableLiveData<String>()
     private var _showDatePicker = MutableLiveData<Boolean>()
     private val _showTimePicker = MutableLiveData<Boolean>()
     private val _errorState = MutableLiveData<Boolean>()
     private val _errorStateTimer = MutableLiveData<Boolean>()
 
+
+    init {
+        loadTasksList()
+    }
+
+    val showFilter: LiveData<Boolean>
+        get() = _showFilter
     val addTaskDialog: LiveData<Boolean>
         get() = _showAddTaskDialog
 
@@ -81,6 +95,15 @@ class TaskViewModel @Inject constructor(
     val displayedDate: LiveData<String>
         get() = _displayedDate
 
+    val showDatePicker: LiveData<Boolean>
+        get() = _showDatePicker
+
+    val showTimePicker: LiveData<Boolean>
+        get() = _showTimePicker
+    val errorState: LiveData<Boolean>
+        get() = _errorState
+    val errorStateTimer: LiveData<Boolean>
+        get() = _errorStateTimer
 
     fun showNewTaskDialog() {
         _showAddTaskDialog.value = true
@@ -94,18 +117,52 @@ class TaskViewModel @Inject constructor(
         _nightMode.value = value
     }
 
-    fun createNewTask(taskModel: TaskModel) {
-        _taskList.add(taskModel)
+    fun createNewTask(taskModel: TaskModel, context: Context) {
+
+        viewModelScope.launch {
+            insertTaskUseCase(taskModel.toEntity())
+            val notificationId = getRowIdUseCase(taskModel.id)
+            loadTasksList()
+            if (taskModel.notify) {
+                scheduleNotification(
+                    taskModel.date,
+                    taskModel.time,
+                    taskModel.description,
+                    context,
+                    notificationId
+                )
+            }
+        }
         hideNewTaskDialog()
     }
 
-    fun updateTaskCheckState(task: TaskModel) {
-        val index = _taskList.indexOf(task)
-        _taskList[index] = task.copy(isCompleted = !task.isCompleted)
+    private fun loadTasksList() {
+        try {
+            viewModelScope.launch {
+                _taskList.clear()
+                val tasks = getTasksUseCase(_displayedDate.value ?: today)
+                _taskList.addAll(if (tasks.isNotEmpty()) tasks.map { it.toModel() } else emptyList())
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
-    fun onItemLongPress(task: TaskModel) {
-        _taskList.removeIf { it.id == task.id }
+    fun updateTaskCheckState(task: TaskModel) {
+        try {
+            val index = _taskList.indexOfFirst { it.id == task.id }
+            val neo_task = task.copy(isCompleted = !task.isCompleted)
+
+            //? To avoid the flickering effect when the checkbox is clicked
+            _taskList[index] = neo_task
+
+            viewModelScope.launch {
+                updateTaskUseCase(neo_task.toEntity())
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            LogError("Error updating task", e)
+        }
     }
 
     fun createNewTask(taskModel: TaskModel, context: Context) {
@@ -280,7 +337,6 @@ class TaskViewModel @Inject constructor(
     fun updateErrorState(b: Boolean) {
         _errorState.value = b
     }
-
     fun updateErrorStateTimer(b: Boolean) {
         _errorStateTimer.value = b
     }
