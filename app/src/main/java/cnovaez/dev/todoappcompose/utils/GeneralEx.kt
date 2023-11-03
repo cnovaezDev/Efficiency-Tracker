@@ -29,3 +29,7 @@ fun setMode(context: Context, mode: Int) {
 }
 
 
+fun validateContent(taskContent: String) = taskContent.isNotEmpty()
+fun validateNotificationTime(time: String) = time != defaultValueTimer
+
+

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import cnovaez.dev.todoappcompose.add_tasks.ui.TaskViewModel
+import cnovaez.dev.todoappcompose.utils.defaultValueTimer
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -53,7 +54,7 @@ fun TimePickerComponent(
     var initialHour = -1
     var initialMinutes = -1
     //Add the noteTime to the timePickerState
-    if (noteTime.isNotEmpty()) {
+    if (noteTime.isNotEmpty() && !noteTime.equals(defaultValueTimer)) {
         val cal = Calendar.getInstance()
         val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
         cal.time = formatter.parse(noteTime)!!

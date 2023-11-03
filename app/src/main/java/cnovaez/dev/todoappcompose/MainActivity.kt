@@ -19,6 +19,10 @@ import androidx.core.content.ContextCompat
 import cnovaez.dev.todoappcompose.add_tasks.ui.TaskViewModel
 import cnovaez.dev.todoappcompose.add_tasks.ui.TasksScreen
 import cnovaez.dev.todoappcompose.ui.theme.TodoAppComposeTheme
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -26,9 +30,11 @@ class MainActivity : ComponentActivity() {
     val taskViewModel: TaskViewModel by viewModels()
 
     private val REQUEST_NOTIFICATION_PERMISSION = 123
-
+    private var mInterstitialAd: InterstitialAd? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        loadIntersitialAdd("ca-app-pub-3940256099942544/1033173712")
 
         // En tu actividad o fragmento de JetPack Compose
         if (checkNotificationPermission(this)) {
@@ -42,6 +48,25 @@ class MainActivity : ComponentActivity() {
         setContent {
             TasksScreen(taskViewModel = taskViewModel)
         }
+    }
+
+    private fun loadIntersitialAdd(adId: String) {
+        val adRequest = AdRequest.Builder().build()
+        InterstitialAd.load(
+            this,
+            adId,
+            adRequest,
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                    mInterstitialAd = interstitialAd
+                    mInterstitialAd?.show(this@MainActivity)
+                }
+
+                override fun onAdFailedToLoad(p0: LoadAdError) {
+                    super.onAdFailedToLoad(p0)
+                    mInterstitialAd = null
+                }
+            })
     }
 
     fun checkNotificationPermission(context: Context): Boolean {
@@ -108,20 +133,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TodoAppComposeTheme {
-        Greeting("Android")
-    }
 }

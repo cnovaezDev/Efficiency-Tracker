@@ -8,6 +8,7 @@ import androidx.work.Configuration
 import androidx.work.WorkManager
 import cnovaez.dev.todoappcompose.utils.CHANNEL_ID
 import cnovaez.dev.todoappcompose.utils.logs.FileLoggingTree
+import com.google.android.gms.ads.MobileAds
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 
@@ -20,6 +21,7 @@ class TodoApp: Application() {
     override fun onCreate() {
         super.onCreate()
         Timber.plant(FileLoggingTree(this))
+        MobileAds.initialize(this)
        // WorkManager.initialize(this, Configuration.Builder().build())
         createNotificationChannel()
     }

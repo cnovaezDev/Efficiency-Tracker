@@ -49,6 +49,7 @@ class TaskViewModel @Inject constructor(
 
     ) : ViewModel() {
 
+
     val selectedTime = MutableLiveData("")
     val searchQuery = MutableLiveData("")
     val snackBarHostState = SnackbarHostState()
@@ -65,6 +66,9 @@ class TaskViewModel @Inject constructor(
     private var _displayedDate = MutableLiveData<String>()
     private var _showDatePicker = MutableLiveData<Boolean>()
     private val _showTimePicker = MutableLiveData<Boolean>()
+    private val _errorState = MutableLiveData<Boolean>()
+    private val _errorStateTimer = MutableLiveData<Boolean>()
+
 
     init {
         loadTasksList()
@@ -88,6 +92,10 @@ class TaskViewModel @Inject constructor(
 
     val showTimePicker: LiveData<Boolean>
         get() = _showTimePicker
+    val errorState: LiveData<Boolean>
+        get() = _errorState
+    val errorStateTimer: LiveData<Boolean>
+        get() = _errorStateTimer
 
     fun showNewTaskDialog() {
         _showAddTaskDialog.value = true
@@ -149,7 +157,11 @@ class TaskViewModel @Inject constructor(
         }
     }
 
-    fun onItemLongPress(task: TaskModel) {
+    fun deleteTaskFromMemory(task: TaskModel) {
+        _taskList.removeIf { task.id == it.id }
+    }
+
+    fun deleteTask(task: TaskModel) {
         viewModelScope.launch {
             deleteTaskUseCase(task.toEntity())
             loadTasksList()
@@ -265,6 +277,13 @@ class TaskViewModel @Inject constructor(
             // Manejar errores en el formato de fecha y hora
             null
         }
+    }
+
+    fun updateErrorState(b: Boolean) {
+        _errorState.value = b
+    }
+    fun updateErrorStateTimer(b: Boolean) {
+        _errorStateTimer.value = b
     }
 
 }
