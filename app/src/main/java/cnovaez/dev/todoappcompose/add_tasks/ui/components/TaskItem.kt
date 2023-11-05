@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.Card
@@ -41,13 +42,13 @@ fun TaskItem(task: TaskModel, taskViewModel: TaskViewModel) {
     val context = LocalContext.current
     val mode = getMode(context)
     val nightMode by taskViewModel.nightMode.observeAsState(initial = mode == MODE_DARK)
-    if (isDateEarlyThanToday(task.date)) Text(text = task.date, color = Color.Red, fontSize = 10.sp, modifier = Modifier.padding(start = 16.dp))
+    if (isDateEarlyThanToday(task.date)) Text(text = task.date, color = Color(0xFFE23232), fontSize = 10.sp, modifier = Modifier.padding(start = 16.dp))
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .pointerInput(Unit) {
-                detectTapGestures(onLongPress = { /*taskViewModel.onItemLongPress(task)*/
+                detectTapGestures(onLongPress = {
                     taskViewModel.deleteTaskFromMemory(task)
                     taskViewModel.showDeleteSnackBar(true, task)
                 },
@@ -76,6 +77,13 @@ fun TaskItem(task: TaskModel, taskViewModel: TaskViewModel) {
                 textDecoration = if (task.isCompleted) TextDecoration.LineThrough else null,
                 color = if (nightMode) Color.White else Color.DarkGray,
             )
+            if (task.important) {
+                Icon(
+                    imageVector = Icons.Filled.Flag,
+                    contentDescription = "",
+                    tint = Color(0xFFE23232)
+                )
+            }
             if (task.notify) {
                 Icon(
                     imageVector = if (isDateToday(task.date) && isTimeValid(task.time, task.date)) Icons.Filled.NotificationsActive else Icons.Filled.NotificationsOff,

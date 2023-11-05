@@ -30,9 +30,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import cnovaez.dev.todoappcompose.R
 import cnovaez.dev.todoappcompose.add_tasks.ui.TaskViewModel
 import cnovaez.dev.todoappcompose.utils.defaultValueTimer
 import java.text.SimpleDateFormat
@@ -56,7 +58,7 @@ fun TimePickerComponent(
     //Add the noteTime to the timePickerState
     if (noteTime.isNotEmpty() && !noteTime.equals(defaultValueTimer)) {
         val cal = Calendar.getInstance()
-        val formatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+        val formatter = SimpleDateFormat("hh:mm a", Locale.forLanguageTag("es-ES"))
         cal.time = formatter.parse(noteTime)!!
         initialHour = cal.get(Calendar.HOUR_OF_DAY)
         initialMinutes = cal.get(Calendar.MINUTE)
@@ -67,16 +69,16 @@ fun TimePickerComponent(
         rememberTimePickerState()
     }
 
-    val formatter = remember { SimpleDateFormat("hh:mm a", Locale.getDefault()) }
+    val formatter = remember { SimpleDateFormat("hh:mm a",  ) }
     val showingPicker = remember { mutableStateOf(true) }
     val configuration = LocalConfiguration.current
 
     if (showTimePicker) {
         TimePickerDialog(
             title = if (showingPicker.value) {
-                "Select Time "
+                stringResource(R.string.select_time)
             } else {
-                "Enter Time"
+                stringResource(R.string.enter_time)
             },
             onCancel = { taskViewModel.showTimePicker(false) },
             onConfirm = {
@@ -98,9 +100,9 @@ fun TimePickerComponent(
                         Icon(
                             icon,
                             contentDescription = if (showingPicker.value) {
-                                "Switch to Text Input"
+                                stringResource(R.string.switch_to_text_input)
                             } else {
-                                "Switch to Touch Input"
+                                stringResource(R.string.switch_to_touch_input)
                             }
                         )
                     }

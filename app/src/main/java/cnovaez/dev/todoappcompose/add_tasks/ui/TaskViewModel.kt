@@ -78,6 +78,7 @@ class TaskViewModel @Inject constructor(
     private val _errorStateTimer = MutableLiveData<Boolean>()
     private val _errorStateDate = MutableLiveData<Boolean>()
     private val _showChart = MutableLiveData<Boolean>()
+    private val _showChartLoading = MutableLiveData<Boolean>()
 
     private val _showDeleteSnackBar = MutableLiveData<Pair<Boolean, TaskModel?>>()
 
@@ -95,6 +96,8 @@ class TaskViewModel @Inject constructor(
         get() = _nightMode
     val showChart: LiveData<Boolean>
         get() = _showChart
+    val showChartLoading: LiveData<Boolean>
+        get() = _showChartLoading
 
     val taskList: List<TaskModel>
         get() = _taskList
@@ -201,11 +204,11 @@ class TaskViewModel @Inject constructor(
     fun loadAllTasks() {
         try {
             viewModelScope.launch {
-                _showChart.postValue(false)
+                _showChartLoading.postValue(false)
                 _allTasks.clear()
                 val tasks = getAllTasksUseCase()
                 _allTasks.addAll(if (tasks.isNotEmpty()) tasks.map { it.toModel() } else emptyList())
-                _showChart.postValue(true)
+                _showChartLoading.postValue(true)
             }
 
         } catch (e: Exception) {
@@ -231,10 +234,18 @@ class TaskViewModel @Inject constructor(
     }
 
     fun deleteTaskFromMemory(task: TaskModel?) {
-        if (task != null) {
-            _taskList.removeIf { task.id == it.id }
-        } else {
-            LogError("Task is null")
+        try {
+            viewModelScope.launch {
+                if (task != null) {
+                   _taskList.removeIf { task.id == it.id }
+                } else {
+                    LogError("Task is null")
+                }
+            }
+
+        }catch (ex: Exception){
+            ex.printStackTrace()
+            LogError("Error deleting task from memory", ex)
         }
     }
 
@@ -249,7 +260,7 @@ class TaskViewModel @Inject constructor(
 
     fun getCurrentDateFormatted(): String {
         val calendar = Calendar.getInstance()
-        val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es-ES"))
         return dateFormat.format(calendar.time)
     }
 
@@ -354,7 +365,7 @@ class TaskViewModel @Inject constructor(
 
     private fun combineDateTime(date: String, time: String): Date? {
         val dateTimeString = "$date $time"
-        val dateTimeFormat = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.getDefault())
+        val dateTimeFormat = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.forLanguageTag("es-ES"))
 
         return try {
             dateTimeFormat.parse(dateTimeString)
@@ -380,5 +391,12 @@ class TaskViewModel @Inject constructor(
         _errorStateDate.value = b
     }
 
+    fun updateShowChart(b: Boolean) {
+        _showChart.value = b
+    }
+
+    fun updateShowChartLoading(b: Boolean) {
+        _showChartLoading.value = b
+    }
 
 }

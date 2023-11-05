@@ -15,7 +15,8 @@ data class TaskModel(
     var notify: Boolean = false,
     var repeatRange: String = "",
     var secret_task: Boolean = false,
-    val repeat: Boolean = false
+    val repeat: Boolean = false,
+    val important: Boolean = false
 
 ) {
 
@@ -28,6 +29,7 @@ data class TaskModel(
         notify = notify,
         repeatRange = repeatRange,
         secret_task = secret_task,
-        repeat = repeat
+        repeat = repeat,
+        important = important
     )
 }

@@ -1,7 +1,7 @@
 package cnovaez.dev.todoappcompose.utils
 
+import android.app.Activity
 import android.content.Context
-import cnovaez.dev.todoappcompose.utils.logs.LogInfo
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -33,6 +33,15 @@ fun setMode(context: Context, mode: Int) {
 }
 
 
+fun setLanguage(context: Context, lang: String) {
+    context.getDarkModePreferences().edit().putString("lang", lang).apply()
+}
+
+fun getLanguage(context: Context): String {
+    return context.getDarkModePreferences().getString("lang", "na") ?: "na"
+}
+
+
 fun validateContent(taskContent: String) = taskContent.isNotEmpty()
 fun validateNotificationTime(time: String) = time != defaultValueTimer
 
@@ -40,7 +49,7 @@ fun validateNotificationTime(time: String) = time != defaultValueTimer
 fun isDateEarlyThanToday(dateString: String): Boolean {
 //    LogInfo("isDateToday dateString: $dateString")
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es-ES"))
     val today = dateFormat.format(calendar.time)
 
     val selectedDate = dateFormat.format(dateFormat.parse(dateString))
@@ -51,35 +60,49 @@ fun isDateEarlyThanToday(dateString: String): Boolean {
 fun isDateToday(dateString: String): Boolean {
 //    LogInfo("isDateToday dateString: $dateString")
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es-ES"))
     val today = dateFormat.format(calendar.time)
 
     val selectedDate = dateFormat.format(dateFormat.parse(dateString))
 
-    return selectedDate>=today
+    return selectedDate >= today
 }
+
 fun isDateBiggerThanToday(dateString: String): Boolean {
 //    LogInfo("isDateToday dateString: $dateString")
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-    val today = dateFormat.format(calendar.time)
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es-ES"))
+    val today = calendar.time
 
-    val selectedDate = dateFormat.format(dateFormat.parse(dateString))
-
+    val selectedDate = dateFormat.parse(dateString)
+//    LogInfo("isDateBiggerThanToday today: ${dateFormat.format(today)}")
+//    LogInfo("isDateBiggerThanToday selectedDate: ${dateFormat.format(selectedDate)}")
     return selectedDate > today
 }
 
 fun isTimeValid(time: String, dateString: String): Boolean {
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
-    val currentTime = dateFormat.format(calendar.time)
+    val dateFormat = SimpleDateFormat("hh:mm a", Locale.forLanguageTag("es-ES"))
+    val currentTime = dateFormat.parse(dateFormat.format(calendar.time))
 
-    val selectedTime = dateFormat.format(dateFormat.parse(time))
+    val selectedTime = dateFormat.parse(time)
 
-//    LogInfo("isTimeValid today: $today")
-//    LogInfo("isTimeValid selectedDate: $selectedTime")
+//    LogInfo("isTimeValid today: ${dateFormat.format(currentTime)}")
+//    LogInfo("isTimeValid selectedDate: ${dateFormat.format(selectedTime)}")
+//    LogInfo("Is time valid: ${selectedTime >= currentTime} || ${isDateBiggerThanToday(dateString)}")
 
-    return (currentTime >= selectedTime || isDateBiggerThanToday(dateString))
+    return ((selectedTime >= currentTime) || isDateBiggerThanToday(dateString))
+}
+
+fun setLocale(activity: Activity, languageCode: String) {
+    val locale = Locale(languageCode)
+    Locale.setDefault(locale)
+
+    val resources = activity.resources
+    val config = resources.configuration
+    config.setLocale(locale)
+
+    resources.updateConfiguration(config, resources.displayMetrics)
 }
 
 

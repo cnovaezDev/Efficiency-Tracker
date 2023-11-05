@@ -12,10 +12,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cnovaez.dev.todoappcompose.add_tasks.ui.Space
+import cnovaez.dev.todoappcompose.R
 import cnovaez.dev.todoappcompose.add_tasks.ui.TaskViewModel
 import kotlin.math.roundToInt
 
@@ -28,6 +29,7 @@ import kotlin.math.roundToInt
 fun TaskList(taskViewModel: TaskViewModel) {
     val filter by taskViewModel.showFilter.observeAsState(initial = false)
     val all_tasks = taskViewModel.taskList.sortedBy { it.isCompleted }.groupBy { it.isCompleted }
+
     LazyColumn(Modifier.padding(top = if (filter) 88.dp else 88.dp)) {
         all_tasks.forEach { (isCompleted, tasks) ->
 
@@ -39,7 +41,9 @@ fun TaskList(taskViewModel: TaskViewModel) {
                 ) {
                     Space(i = 8)
                     Text(
-                        text = (if (isCompleted) "Tasks Completed Today: " else "Tasks Pending for Today: ") + "${
+                        text = (if (isCompleted) stringResource(R.string.tasks_completed_today) else stringResource(
+                            R.string.tasks_pending_for_today
+                        )) + "${
                             ((tasks.size * 100) / taskViewModel.taskList.size).toDouble()
                                 .roundToInt()
 

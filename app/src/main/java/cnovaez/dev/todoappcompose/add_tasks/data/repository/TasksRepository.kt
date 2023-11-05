@@ -24,7 +24,7 @@ class TasksRepository @Inject constructor(
 
     suspend fun updateTask(taskEntity: TaskEntity) {
         try {
-            tasksDao.updateTask(taskEntity.id, taskEntity.description, taskEntity.isCompleted, taskEntity.date, taskEntity.time, taskEntity.secret_task, taskEntity.notify, taskEntity.repeat)
+            tasksDao.updateTask(taskEntity.id, taskEntity.description, taskEntity.isCompleted, taskEntity.date, taskEntity.time, taskEntity.secret_task, taskEntity.notify, taskEntity.repeat, taskEntity.important)
         } catch (e: Exception) {
             e.printStackTrace()
             LogError("Error updating task", e)

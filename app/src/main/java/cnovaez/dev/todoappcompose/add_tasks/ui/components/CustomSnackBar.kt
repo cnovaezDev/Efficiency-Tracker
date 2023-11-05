@@ -52,7 +52,7 @@ fun CustomSnackBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color(0xFFB45F54))
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(start = 16.dp, end = 16.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.Center,
@@ -103,7 +103,7 @@ fun CustomGraph() {
 
         // Dibuja una línea diagonal
         drawLine(
-            color = Color.Red,
+            color = Color(0xFFF58484),
             start = Offset(0f, 0f),
             end = Offset(size.width, size.height),
             strokeWidth = 5f

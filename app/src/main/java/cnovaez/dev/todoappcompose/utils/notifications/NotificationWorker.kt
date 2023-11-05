@@ -12,7 +12,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import cnovaez.dev.todoappcompose.MainActivity
+import cnovaez.dev.todoappcompose.add_tasks.ui.MainActivity
 import cnovaez.dev.todoappcompose.R
 import cnovaez.dev.todoappcompose.utils.CHANNEL_ID
 import cnovaez.dev.todoappcompose.utils.NOTIFICATION_ID
@@ -44,7 +44,7 @@ class NotificationWorker(context: Context, params: WorkerParameters) : Worker(co
         val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) // Obtiene el sonido predeterminado de notificación
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+            .setSmallIcon(R.drawable.ic_productivity_tracker)
             .setContentTitle("Productivity App")
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

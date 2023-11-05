@@ -1,4 +1,30 @@
 <resources>
-    <string name="app_name">TodoAppCompose</string>
+    <string name="app_name">Productivity Tracker</string>
     <string name="set_date">Select Date</string>
+    <string name="welcome_msg">Welcome to Productivity Tracker!\nThe app designed exclusively to help you be more productive.\nTo start, please define your personal PIN</string>
+    <string name="save_pin">Save Pin?</string>
+    <string name="note_deleted">Note %1$s deleted</string>
+    <string name="undo">Undo</string>
+    <string name="tasks_completed_today">"Tasks Completed Today: "</string>
+    <string name="tasks_pending_for_today">"Tasks Pending for Today: "</string>
+    <string name="new_task">New Task</string>
+    <string name="repeat_daily">Repeat Daily</string>
+    <string name="notify_me">Notify me</string>
+    <string name="task_date_of_notification_can_t_be_early_than_today">Task date of notification can\'t be early than today</string>
+    <string name="task_time_for_notification_can_t_be_early_than_now">Task time for notification can\'t be early than now</string>
+    <string name="task_content">Task Content</string>
+    <string name="cancel">Cancel</string>
+    <string name="task_time_and_date_can_t_be_early_than_today_and_now">Task time and date can\'t be early than today and now</string>
+    <string name="task_time_can_t_be_empty">Task time can\'t be empty</string>
+    <string name="task_content_can_t_be_empty">Task content can\'t be empty</string>
+    <string name="add_task">Add Task</string>
+    <string name="statistics">Statistics</string>
+    <string name="search">Search</string>
+    <string name="incomplete">" incomplete "</string>
+    <string name="completed">" completed "</string>
+    <string name="productivity_statistics">Productivity Statistics</string>
+    <string name="select_time">"Select Time "</string>
+    <string name="enter_time">Enter Time</string>
+    <string name="switch_to_text_input">Switch to Text Input</string>
+    <string name="switch_to_touch_input">Switch to Touch Input</string>
 </resources>

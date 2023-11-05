@@ -8,6 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import cnovaez.dev.todoappcompose.R
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.TimeZone
@@ -42,7 +44,7 @@ fun DatePickerView(
         },
         dismissButton = {
             TextButton(onClick = { onDismissRequest() }) {
-                Text("Cancel")
+                Text(stringResource(id = R.string.cancel))
             }
         }
     ) {

@@ -48,7 +48,7 @@ class FileLoggingTree(private val context: Context) : Timber.Tree() {
 
 
     fun getDateAndTime(): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.forLanguageTag("es-ES"))
         return dateFormat.format(Date())
     }
 

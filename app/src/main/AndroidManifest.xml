@@ -19,7 +19,7 @@
         android:name=".TodoApp"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name=".add_tasks.ui.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan"
             android:label="@string/app_name"

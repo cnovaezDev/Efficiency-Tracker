@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Productivity Tracker</string>
+    <string name="set_date">Seleccione Fecha</string>
+    <string name="welcome_msg">¡Bienvenido a Productivity Tracker!\nLa app diseñada única y exclusivamente para ayudarle a ser más productivo.\nPara comenzar, por favor defina su PIN personal</string>
+    <string name="save_pin">¿Guardar Pin?</string>
+    <string name="note_deleted">Nota %1$s eliminada</string>
+    <string name="undo">Deshacer</string>
+    <string name="tasks_completed_today">Tareas Completadas Hoy:</string>
+    <string name="tasks_pending_for_today">Tareas Pendientes para Hoy:</string>
+    <string name="new_task">Nueva Tarea</string>
+    <string name="repeat_daily">Repetir Diario</string>
+    <string name="notify_me">Notificame</string>
+    <string name="task_date_of_notification_can_t_be_early_than_today">La fecha de notificación de la tarea no puede ser anterior a hoy</string>
+    <string name="task_time_for_notification_can_t_be_early_than_now">La hora de notificación de la tarea no puede ser anterior a ahora</string>
+    <string name="task_content">Contenido</string>
+    <string name="cancel">Cancelar</string>
+    <string name="task_time_and_date_can_t_be_early_than_today_and_now">La fecha y hora de notificación de la tarea no puede ser anterior a hoy y ahora</string>
+    <string name="task_time_can_t_be_empty">La hora de notificación de la tarea no puede estar vacia</string>
+    <string name="task_content_can_t_be_empty">El contenido de la tarea no puede estar vacio</string>
+    <string name="add_task">Crear Tarea</string>
+    <string name="statistics">Estadisticas</string>
+    <string name="search">Buscar</string>
+    <string name="incomplete">incompletas</string>
+    <string name="completed">completadas</string>
+    <string name="productivity_statistics">Estadisticas de Productividad</string>
+    <string name="select_time">Selecciona Hora</string>
+    <string name="enter_time">Introduce Hora</string>
+    <string name="switch_to_text_input">Cambiar a ingreso escrito</string>
+    <string name="switch_to_touch_input">Cambiar a ingreso por selección</string>
+</resources>
