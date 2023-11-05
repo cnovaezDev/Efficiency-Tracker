@@ -56,7 +56,7 @@ fun isDateToday(dateString: String): Boolean {
 
     val selectedDate = dateFormat.format(dateFormat.parse(dateString))
 
-    return today >= selectedDate
+    return selectedDate>=today
 }
 fun isDateBiggerThanToday(dateString: String): Boolean {
 //    LogInfo("isDateToday dateString: $dateString")
@@ -66,20 +66,20 @@ fun isDateBiggerThanToday(dateString: String): Boolean {
 
     val selectedDate = dateFormat.format(dateFormat.parse(dateString))
 
-    return today > selectedDate
+    return selectedDate > today
 }
 
 fun isTimeValid(time: String, dateString: String): Boolean {
     val calendar = Calendar.getInstance()
     val dateFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
-    val today = dateFormat.format(calendar.time)
+    val currentTime = dateFormat.format(calendar.time)
 
     val selectedTime = dateFormat.format(dateFormat.parse(time))
 
 //    LogInfo("isTimeValid today: $today")
 //    LogInfo("isTimeValid selectedDate: $selectedTime")
 
-    return (today <= selectedTime || isDateBiggerThanToday(dateString))
+    return (currentTime >= selectedTime || isDateBiggerThanToday(dateString))
 }
 
 
