@@ -24,7 +24,7 @@ class TasksRepository @Inject constructor(
 
     suspend fun updateTask(taskEntity: TaskEntity) {
         try {
-            tasksDao.updateTask(taskEntity.id, taskEntity.description, taskEntity.isCompleted, taskEntity.date, taskEntity.time, taskEntity.secret_task, taskEntity.notify)
+            tasksDao.updateTask(taskEntity.id, taskEntity.description, taskEntity.isCompleted, taskEntity.date, taskEntity.time, taskEntity.secret_task, taskEntity.notify, taskEntity.repeat)
         } catch (e: Exception) {
             e.printStackTrace()
             LogError("Error updating task", e)
@@ -55,6 +55,16 @@ class TasksRepository @Inject constructor(
         } catch (e: Exception) {
             e.printStackTrace()
             LogError("Error getting tasks", e)
+            emptyList()
+        }
+    }
+
+    suspend fun getAllTasks(): List<TaskEntity> {
+        return try {
+            tasksDao.getAllTasks()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            LogError("Error getting all tasks", e)
             emptyList()
         }
     }

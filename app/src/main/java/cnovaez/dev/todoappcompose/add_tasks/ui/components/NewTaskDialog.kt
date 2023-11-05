@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -40,6 +41,8 @@ import cnovaez.dev.todoappcompose.add_tasks.ui.model.TaskModel
 import cnovaez.dev.todoappcompose.core.DatePickerView
 import cnovaez.dev.todoappcompose.core.TimePickerComponent
 import cnovaez.dev.todoappcompose.utils.defaultValueTimer
+import cnovaez.dev.todoappcompose.utils.isDateEarlyThanToday
+import cnovaez.dev.todoappcompose.utils.isTimeValid
 import cnovaez.dev.todoappcompose.utils.validateContent
 import cnovaez.dev.todoappcompose.utils.validateNotificationTime
 
@@ -52,7 +55,8 @@ import cnovaez.dev.todoappcompose.utils.validateNotificationTime
 fun NewTaskDialg(
     viewModel: TaskViewModel,
     onDismissReques: () -> Unit,
-    onTaskAdded: (Pair<TaskModel, Boolean>) -> Unit
+    onTaskAdded: (Pair<TaskModel, Boolean>) -> Unit,
+    nightMode: Boolean,
 ) {
     val scope = rememberCoroutineScope()
     val show by viewModel.addTaskDialog.observeAsState(initial = Pair(false, null))
@@ -75,12 +79,19 @@ fun NewTaskDialg(
     }
     val errorState by viewModel.errorState.observeAsState(initial = false)
     val errorStateTimer by viewModel.errorStateTimer.observeAsState(initial = false)
+    val errorStateDate by viewModel.errorStateDate.observeAsState(initial = false)
 
     var taskContent by rememberSaveable {
         mutableStateOf("")
     }
     var errorMsg by rememberSaveable {
         mutableStateOf("")
+    }
+    var valueAsigned by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var repeatNotification by rememberSaveable {
+        mutableStateOf(false)
     }
 
     if (restarData) {
@@ -90,13 +101,21 @@ fun NewTaskDialg(
         taskContent = ""
         viewModel.updateErrorState(false)
         viewModel.updateErrorStateTimer(false)
+        viewModel.updateErrorStateDate(false)
+        valueAsigned = false
+        errorMsg = ""
+        repeatNotification = false
         restarData = false
     }
 
     if (showTimePicker) {
         TimePickerComponent(taskViewModel = viewModel, onTimeSelected = {
             noteTime = it
-            viewModel.updateErrorStateTimer(false)
+            val valid = !isTimeValid(noteTime, noteDate)
+            viewModel.updateErrorStateTimer(valid)
+            if (valid) {
+                errorMsg = "Task time for notification can't be early than now"
+            }
         }, noteTime)
     }
 
@@ -104,20 +123,31 @@ fun NewTaskDialg(
         DatePickerView(
             selectedDate = noteDate, onDateSelection = {
                 noteDate = it
+                val invalid = isDateEarlyThanToday(noteDate)
+                viewModel.updateErrorStateDate(invalid)
+                if (invalid) {
+                    errorMsg = "Task date of notification can't be early than today"
+                }
                 showDateSelection = false
             }, onDismissRequest = {
                 showDateSelection = false
             })
     }
 
-
     var id = System.currentTimeMillis()
     if (show.first) {
         if (!showDateSelection && !showTimePicker && show.second != null) {
-            noteDate = show.second!!.date
-            noteTime = show.second!!.time
-            notify = show.second!!.notify
-            taskContent = show.second!!.description
+            if (!valueAsigned) {
+                noteDate = show.second!!.date
+                noteTime = show.second!!.time
+                notify = show.second!!.notify
+                taskContent = show.second!!.description
+                valueAsigned = true
+                viewModel.updateErrorStateDate(isDateEarlyThanToday(noteDate))
+                if (noteTime != defaultValueTimer)
+                    viewModel.updateErrorStateTimer(!isTimeValid(noteTime, noteDate))
+                repeatNotification = show.second!!.repeat
+            }
             id = show.second!!.id
         }
 
@@ -132,11 +162,16 @@ fun NewTaskDialg(
                             .fillMaxWidth()
                             .padding(bottom = 8.dp)
                     ) {
-                        Text(
-                            text = "Notify me",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row (Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically){
+                            Text(
+                                text = "Notify me",
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(text = "Repeat Daily", fontSize = 12.sp)
+                            Checkbox(checked = repeatNotification, onCheckedChange = {repeatNotification = !repeatNotification})
+                        }
                         Row(
                             Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
@@ -147,7 +182,8 @@ fun NewTaskDialg(
                             }) {
                                 Icon(
                                     imageVector = Icons.Filled.EditCalendar,
-                                    contentDescription = "Note Date"
+                                    contentDescription = "Note Date",
+                                    tint = if (errorStateDate) Color.Red else if (!nightMode) Color.DarkGray else Color.LightGray
                                 )
                             }
                             Text(text = noteDate, fontSize = 12.sp)
@@ -157,7 +193,7 @@ fun NewTaskDialg(
                                 Icon(
                                     imageVector = Icons.Filled.AccessTime,
                                     contentDescription = "Note Time",
-                                    tint = if (errorStateTimer) Color.Red else Color.DarkGray
+                                    tint = if (errorStateTimer) Color.Red else if (!nightMode) Color.DarkGray else Color.LightGray
                                 )
                             }
                             Text(text = noteTime, fontSize = 12.sp)
@@ -211,7 +247,7 @@ fun NewTaskDialg(
                         },
                         isError = errorState,
                     )
-                    if (errorState || errorStateTimer) {
+                    if (errorState || errorStateTimer || errorStateDate) {
                         Text(
                             text = errorMsg,
                             fontSize = 10.sp,
@@ -248,20 +284,30 @@ fun NewTaskDialg(
                             onClick = {
                                 if (validateContent(taskContent)) {
                                     if ((notify && validateNotificationTime(noteTime)) || !notify) {
-                                        onTaskAdded(
-                                            Pair(
-                                                TaskModel(
-                                                    id = id,
-                                                    description = taskContent,
-                                                    date = noteDate,
-                                                    time = noteTime,
-                                                    isCompleted = false,
-                                                    notify = notify
-                                                ), show.second != null
+                                        if (!notify || isTimeValid(noteTime, noteDate) && !isDateEarlyThanToday(
+                                                noteDate
                                             )
-                                        )
+                                        ) {
+                                            onTaskAdded(
+                                                Pair(
+                                                    TaskModel(
+                                                        id = id,
+                                                        description = taskContent,
+                                                        date = noteDate,
+                                                        time = noteTime,
+                                                        isCompleted = false,
+                                                        notify = notify,
+                                                        repeat = repeatNotification
+                                                    ), show.second != null
+                                                )
+                                            )
+                                            restarData = true
 
-                                        restarData = true
+                                        } else {
+                                            errorMsg =
+                                                "Task time and date can't be early than today and now"
+                                        }
+
                                     } else {
                                         viewModel.updateErrorStateTimer(true)
                                         errorMsg = "Task time can't be empty"

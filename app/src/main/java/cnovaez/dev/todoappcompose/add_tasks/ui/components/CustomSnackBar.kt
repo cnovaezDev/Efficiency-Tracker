@@ -2,6 +2,7 @@ package cnovaez.dev.todoappcompose.add_tasks.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -38,7 +40,7 @@ fun CustomSnackBar(
     actionLabel: String? = null,
     duration: Long = 3000, // Duración predeterminada en milisegundos
     onActionClick: () -> Unit = {},
-    onDismiss: () -> Unit = {}
+    onDismiss: () -> Unit = {},
 ) {
 
 
@@ -68,8 +70,9 @@ fun CustomSnackBar(
                 color = Color.White,
                 modifier = Modifier
                     .padding(start = 8.dp)
-                    .align(Alignment.CenterVertically)
+                    .align(Alignment.CenterVertically).weight(1f)
             )
+            Icon(imageVector = Icons.Filled.Close, contentDescription = "", modifier = Modifier.size(24.dp).clickable { onDismiss() }, tint = Color.White)
         }
         if (!actionLabel.isNullOrBlank()) {
             Spacer(modifier = Modifier.height(8.dp))

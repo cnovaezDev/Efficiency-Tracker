@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cnovaez.dev.todoappcompose.add_tasks.ui.components.CustomChart
 import cnovaez.dev.todoappcompose.add_tasks.ui.components.CustomSnackBar
 import cnovaez.dev.todoappcompose.add_tasks.ui.components.FilterComponent
 import cnovaez.dev.todoappcompose.add_tasks.ui.components.NewTaskDialg
@@ -115,7 +116,8 @@ fun TasksScreen(taskViewModel: TaskViewModel) {
                                 context,
                                 pair.second
                             )
-                        }
+                        },
+                        nightMode
 
                     )
                     //? Tasks list
@@ -176,15 +178,17 @@ fun TasksScreen(taskViewModel: TaskViewModel) {
                                 onDismiss = {
                                     LogInfo("SnackBar Dismissed")
                                     snackBarVisible.second?.let { task ->
-                                        taskViewModel.deleteTask(task)
+                                        taskViewModel.deleteTask(task, context)
                                     }
                                     taskViewModel.showDeleteSnackBar(false)
-                                }
+                                },
                             )
 
                         }
                     }
 
+                    taskViewModel.loadAllTasks()
+                    CustomChart(Modifier.fillMaxWidth().align(Alignment.Center), taskViewModel)
 
                 }
             }

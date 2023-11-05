@@ -1,6 +1,10 @@
 package cnovaez.dev.todoappcompose.utils
 
 import android.content.Context
+import cnovaez.dev.todoappcompose.utils.logs.LogInfo
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 /**
  ** Created by Carlos A. Novaez Guerrero on 10/28/2023 7:19 PM
@@ -31,5 +35,51 @@ fun setMode(context: Context, mode: Int) {
 
 fun validateContent(taskContent: String) = taskContent.isNotEmpty()
 fun validateNotificationTime(time: String) = time != defaultValueTimer
+
+
+fun isDateEarlyThanToday(dateString: String): Boolean {
+//    LogInfo("isDateToday dateString: $dateString")
+    val calendar = Calendar.getInstance()
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val today = dateFormat.format(calendar.time)
+
+    val selectedDate = dateFormat.format(dateFormat.parse(dateString))
+
+    return today > selectedDate
+}
+
+fun isDateToday(dateString: String): Boolean {
+//    LogInfo("isDateToday dateString: $dateString")
+    val calendar = Calendar.getInstance()
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val today = dateFormat.format(calendar.time)
+
+    val selectedDate = dateFormat.format(dateFormat.parse(dateString))
+
+    return today >= selectedDate
+}
+fun isDateBiggerThanToday(dateString: String): Boolean {
+//    LogInfo("isDateToday dateString: $dateString")
+    val calendar = Calendar.getInstance()
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val today = dateFormat.format(calendar.time)
+
+    val selectedDate = dateFormat.format(dateFormat.parse(dateString))
+
+    return today > selectedDate
+}
+
+fun isTimeValid(time: String, dateString: String): Boolean {
+    val calendar = Calendar.getInstance()
+    val dateFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    val today = dateFormat.format(calendar.time)
+
+    val selectedTime = dateFormat.format(dateFormat.parse(time))
+
+//    LogInfo("isTimeValid today: $today")
+//    LogInfo("isTimeValid selectedDate: $selectedTime")
+
+    return (today <= selectedTime || isDateBiggerThanToday(dateString))
+}
 
 

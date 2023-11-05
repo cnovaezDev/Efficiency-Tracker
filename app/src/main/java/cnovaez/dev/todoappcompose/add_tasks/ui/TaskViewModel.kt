@@ -17,12 +17,14 @@ import androidx.work.WorkManager
 import cnovaez.dev.todoappcompose.add_tasks.ui.model.TaskModel
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.DeleteTaskByIdUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.DeleteTaskUseCase
+import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetAllTasksUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetRowIdUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetTaskByIdUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetTasksByFilterUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetTasksUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.InsertTaskUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.UpdateTaskUseCase
+import cnovaez.dev.todoappcompose.utils.isDateEarlyThanToday
 import cnovaez.dev.todoappcompose.utils.logs.LogError
 import cnovaez.dev.todoappcompose.utils.logs.LogInfo
 import cnovaez.dev.todoappcompose.utils.notifications.NotificationWorker
@@ -50,7 +52,7 @@ class TaskViewModel @Inject constructor(
     private val updateTaskUseCase: UpdateTaskUseCase,
     private val getTaskByFilterUseCase: GetTasksByFilterUseCase,
     private val getRowIdUseCase: GetRowIdUseCase,
-
+    private val getAllTasksUseCase: GetAllTasksUseCase,
 
     ) : ViewModel() {
 
@@ -68,11 +70,14 @@ class TaskViewModel @Inject constructor(
     private var _showAddTaskDialog = MutableLiveData<Pair<Boolean, TaskModel?>>()
     private var _nightMode = MutableLiveData<Boolean>()
     private var _taskList = mutableStateListOf<TaskModel>()
+    private var _allTasks = mutableStateListOf<TaskModel>()
     private var _displayedDate = MutableLiveData<String>()
     private var _showDatePicker = MutableLiveData<Boolean>()
     private val _showTimePicker = MutableLiveData<Boolean>()
     private val _errorState = MutableLiveData<Boolean>()
     private val _errorStateTimer = MutableLiveData<Boolean>()
+    private val _errorStateDate = MutableLiveData<Boolean>()
+    private val _showChart = MutableLiveData<Boolean>()
 
     private val _showDeleteSnackBar = MutableLiveData<Pair<Boolean, TaskModel?>>()
 
@@ -88,9 +93,14 @@ class TaskViewModel @Inject constructor(
 
     val nightMode: LiveData<Boolean>
         get() = _nightMode
+    val showChart: LiveData<Boolean>
+        get() = _showChart
 
     val taskList: List<TaskModel>
         get() = _taskList
+
+    val alltaskList: List<TaskModel>
+        get() = _allTasks
     val displayedDate: LiveData<String>
         get() = _displayedDate
 
@@ -103,6 +113,8 @@ class TaskViewModel @Inject constructor(
         get() = _errorState
     val errorStateTimer: LiveData<Boolean>
         get() = _errorStateTimer
+    val errorStateDate: LiveData<Boolean>
+        get() = _errorStateDate
 
     val showDeleteSnackBar: LiveData<Pair<Boolean, TaskModel?>>
         get() = _showDeleteSnackBar
@@ -128,17 +140,27 @@ class TaskViewModel @Inject constructor(
                 updateTaskUseCase(taskModel.toEntity())
             }
             val notificationId = getRowIdUseCase(taskModel.id)
-            loadTasksList()
             if (taskModel.notify) {
                 cancelExistingNotification(notificationId, context)
-                scheduleNotification(
-                    taskModel.date,
-                    taskModel.time,
-                    taskModel.description,
-                    context,
-                    notificationId
-                )
+                if (taskModel.repeat) {
+                    scheduleRepeatingNotification(
+                        taskModel.date,
+                        taskModel.time,
+                        taskModel.description,
+                        context,
+                        notificationId
+                    )
+                } else {
+                    scheduleNotification(
+                        taskModel.date,
+                        taskModel.time,
+                        taskModel.description,
+                        context,
+                        notificationId
+                    )
+                }
             }
+            loadTasksList()
         }
         hideNewTaskDialog()
     }
@@ -158,8 +180,34 @@ class TaskViewModel @Inject constructor(
             viewModelScope.launch {
                 _taskList.clear()
                 val tasks = getTasksUseCase(_displayedDate.value ?: today)
-                _taskList.addAll(if (tasks.isNotEmpty()) tasks.map { it.toModel() } else emptyList())
+                val repeatTasks = tasks.filter { it.repeat && isDateEarlyThanToday(it.date) }
+                if (repeatTasks.isEmpty()) {
+                    _taskList.addAll(if (tasks.isNotEmpty()) tasks.map { it.toModel() } else emptyList())
+                } else {
+                    repeatTasks.forEach { task ->
+                        val neo_task = task.copy(date = today)
+                        updateTaskUseCase(neo_task)
+                    }
+                    val tasks = getTasksUseCase(_displayedDate.value ?: today)
+                    _taskList.addAll(if (tasks.isNotEmpty()) tasks.map { it.toModel() } else emptyList())
+                }
             }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun loadAllTasks() {
+        try {
+            viewModelScope.launch {
+                _showChart.postValue(false)
+                _allTasks.clear()
+                val tasks = getAllTasksUseCase()
+                _allTasks.addAll(if (tasks.isNotEmpty()) tasks.map { it.toModel() } else emptyList())
+                _showChart.postValue(true)
+            }
+
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -182,12 +230,18 @@ class TaskViewModel @Inject constructor(
         }
     }
 
-    fun deleteTaskFromMemory(task: TaskModel) {
-        _taskList.removeIf { task.id == it.id }
+    fun deleteTaskFromMemory(task: TaskModel?) {
+        if (task != null) {
+            _taskList.removeIf { task.id == it.id }
+        } else {
+            LogError("Task is null")
+        }
     }
 
-    fun deleteTask(task: TaskModel) {
+    fun deleteTask(task: TaskModel, context: Context) {
         viewModelScope.launch {
+            val notificationId = getRowIdUseCase(task.id)
+            cancelExistingNotification(notificationId, context = context)
             deleteTaskUseCase(task.toEntity())
             loadTasksList()
         }
@@ -261,15 +315,20 @@ class TaskViewModel @Inject constructor(
     fun scheduleRepeatingNotification(
         date: String,
         time: String,
-        notificationMessage: String
+        notificationMessage: String,
+        context: Context,
+        notificationId: Int
     ) {
-        val workManager = WorkManager.getInstance()
+        LogInfo("Attempting to schedule a repeating notification for $date $time with message: $notificationMessage")
+
+        val workManager = WorkManager.getInstance(context)
 
         val dateTime = combineDateTime(date, time)
 
         if (dateTime != null) {
             val notificationData = Data.Builder()
                 .putString("message", notificationMessage)
+                .putInt("notificationId", notificationId)
                 .build()
 
             val currentTime = System.currentTimeMillis()
@@ -289,6 +348,7 @@ class TaskViewModel @Inject constructor(
                 ExistingPeriodicWorkPolicy.REPLACE,
                 notificationRequest
             )
+            LogInfo("Repeating Notification scheduled successfully")
         }
     }
 
@@ -314,6 +374,10 @@ class TaskViewModel @Inject constructor(
 
     fun showDeleteSnackBar(b: Boolean, task: TaskModel? = null) {
         _showDeleteSnackBar.value = Pair(b, task)
+    }
+
+    fun updateErrorStateDate(b: Boolean) {
+        _errorStateDate.value = b
     }
 
 

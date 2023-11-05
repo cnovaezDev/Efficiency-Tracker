@@ -22,6 +22,8 @@ data class TaskEntity(
     var repeatRange: String = "",
     @ColumnInfo(name = "secret_task")
     var secret_task: Boolean = false,
+    @ColumnInfo(name = "repeat")
+    var repeat: Boolean = false,
 
     ) {
     fun toModel() = TaskModel(
@@ -32,7 +34,8 @@ data class TaskEntity(
         time = time,
         notify = notify,
         repeatRange = repeatRange,
-        secret_task = secret_task
+        secret_task = secret_task,
+        repeat = repeat
     )
 }
 

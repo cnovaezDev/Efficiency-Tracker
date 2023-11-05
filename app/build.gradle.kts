@@ -101,4 +101,6 @@ dependencies {
     //Google Play Services Ads
     implementation("com.google.android.gms:play-services-ads:22.5.0")
 
+    implementation("com.patrykandpatrick.vico:compose-m3:1.12.0")
+
 }

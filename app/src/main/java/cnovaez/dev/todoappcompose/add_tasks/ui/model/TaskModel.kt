@@ -15,7 +15,10 @@ data class TaskModel(
     var notify: Boolean = false,
     var repeatRange: String = "",
     var secret_task: Boolean = false,
+    val repeat: Boolean = false
+
 ) {
+
     fun toEntity() = TaskEntity(
         id = id,
         description = description,
@@ -24,6 +27,7 @@ data class TaskModel(
         time = time,
         notify = notify,
         repeatRange = repeatRange,
-        secret_task = secret_task
+        secret_task = secret_task,
+        repeat = repeat
     )
 }

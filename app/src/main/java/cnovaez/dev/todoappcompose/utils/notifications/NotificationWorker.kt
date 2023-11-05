@@ -51,13 +51,14 @@ class NotificationWorker(context: Context, params: WorkerParameters) : Worker(co
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setSound(soundUri) // Configura el sonido
+            .setVibrate(longArrayOf(1000, 1000, 1000, 1000, 1000)) // Configura la vibración
 
         val notificationManager = NotificationManagerCompat.from(context)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "My Channel"
+            val name = "Productivity App Channel"
             val descriptionText = "Descripción del canal"
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
+            val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
             }
