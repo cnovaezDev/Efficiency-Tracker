@@ -24,7 +24,7 @@ class TasksRepository @Inject constructor(
 
     suspend fun updateTask(taskEntity: TaskEntity) {
         try {
-            tasksDao.updateTask(taskEntity.id, taskEntity.description, taskEntity.isCompleted, taskEntity.date, taskEntity.time, taskEntity.secret_task, taskEntity.notify, taskEntity.repeat, taskEntity.important)
+            tasksDao.updateTask(taskEntity.id, taskEntity.description, taskEntity.isCompleted, taskEntity.date, taskEntity.time, taskEntity.secret_task, taskEntity.notify, taskEntity.repeat, taskEntity.important, taskEntity.followUp)
         } catch (e: Exception) {
             e.printStackTrace()
             LogError("Error updating task", e)
@@ -40,7 +40,7 @@ class TasksRepository @Inject constructor(
         }
     }
 
-    suspend fun deleteTaskById(taskId: String) {
+    suspend fun deleteTaskById(taskId: Long) {
         try {
             tasksDao.deleteTaskById(taskId)
         } catch (e: Exception) {

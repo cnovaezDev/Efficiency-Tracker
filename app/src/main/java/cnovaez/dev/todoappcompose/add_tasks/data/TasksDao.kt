@@ -15,7 +15,7 @@ interface TasksDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(taskEntity: TaskEntity)
 
-    @Query("UPDATE tasks SET description = :description, is_completed = :isCompleted, date_of_note = :date, time_of_note = :time, secret_task = :secretTask, notify = :notify, repeat =:repeat, important=:important WHERE id = :id")
+    @Query("UPDATE tasks SET description = :description, is_completed = :isCompleted, date_of_note = :date, time_of_note = :time, secret_task = :secretTask, notify = :notify, repeat =:repeat, important=:important, follow_up=:followUp WHERE id = :id")
     suspend fun updateTask(
         id: Long,
         description: String,
@@ -26,15 +26,16 @@ interface TasksDao {
         notify: Boolean,
         repeat: Boolean,
         important: Boolean,
+        followUp: Boolean,
     )
 
     @Query("DELETE FROM tasks WHERE id = :taskId")
-    suspend fun deleteTaskById(taskId: String)
+    suspend fun deleteTaskById(taskId: Long)
 
     @Delete
     suspend fun deleteTask(taskEntity: TaskEntity)
 
-    @Query("SELECT * FROM tasks where date_of_note = :date or (date_of_note < :date and is_completed = 0) or repeat =1 order by date_of_note asc")
+    @Query("SELECT * FROM tasks where date_of_note = :date or (date_of_note < :date and is_completed = 0 and follow_up = 1) or repeat =1 order by date_of_note asc")
     suspend fun getTasks(date: String): List<TaskEntity>
 
     @Query("SELECT * FROM tasks")

@@ -1,7 +1,6 @@
 package cnovaez.dev.todoappcompose.add_tasks.ui.components
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -16,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,46 +49,58 @@ fun CustomSnackBar(
         delay(duration)
         onDismiss()
     }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFB45F54))
-            .padding(start = 16.dp, end = 16.dp)
+    Card(
+        Modifier
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFF57979),
+        )
     ) {
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-            Icon(
-                imageVector = Icons.Filled.WarningAmber,
-                contentDescription = "Warning",
-                modifier = Modifier.size(24.dp),
-                tint = Color(0xFFE8B980)
-            )
-            Text(
-                text = message,
-                color = Color.White,
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .align(Alignment.CenterVertically).weight(1f)
-            )
-            Icon(imageVector = Icons.Filled.Close, contentDescription = "", modifier = Modifier.size(24.dp).clickable { onDismiss() }, tint = Color.White)
-        }
-        if (!actionLabel.isNullOrBlank()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(
-                onClick = {
-                    taskViewModel.showDeleteSnackBar(false)
-                    onActionClick()
-                },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(text = actionLabel)
+                Icon(
+                    imageVector = Icons.Filled.WarningAmber,
+                    contentDescription = "Warning",
+                    modifier = Modifier.size(24.dp),
+                    tint = Color(0xFFE8B980)
+                )
+                Text(
+                    text = message,
+                    color = Color.White,
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .align(Alignment.CenterVertically)
+                        .weight(1f)
+                )
+                Icon(imageVector = Icons.Filled.Close, contentDescription = "", modifier = Modifier
+                    .size(24.dp)
+                    .clickable { onDismiss() }, tint = Color.White
+                )
+            }
+            if (!actionLabel.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = {
+                        taskViewModel.showDeleteSnackBar(false)
+                        onActionClick()
+                    },
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Text(text = actionLabel)
+                }
             }
         }
     }
 }
+
 @Preview
 @Composable
 fun CustomGraph() {

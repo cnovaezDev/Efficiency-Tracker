@@ -2,6 +2,7 @@ package cnovaez.dev.todoappcompose.utils
 
 import android.app.Activity
 import android.content.Context
+import cnovaez.dev.todoappcompose.utils.logs.LogInfo
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -41,15 +42,23 @@ fun getLanguage(context: Context): String {
     return context.getDarkModePreferences().getString("lang", "na") ?: "na"
 }
 
+fun setDailyNotify(context: Context, notify: Boolean) {
+    context.getDarkModePreferences().edit().putBoolean("notify", notify).apply()
+}
+
+fun getDailyNotify(context: Context): Boolean {
+    return context.getDarkModePreferences().getBoolean("notify", false) ?: false
+}
+
 
 fun validateContent(taskContent: String) = taskContent.isNotEmpty()
 fun validateNotificationTime(time: String) = time != defaultValueTimer
 
 
-fun isDateEarlyThanToday(dateString: String): Boolean {
+fun isDateEarlyThanToday(dateString: String, context: Context): Boolean {
 //    LogInfo("isDateToday dateString: $dateString")
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es-ES"))
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", getLocaleByLanguage(context))
     val today = dateFormat.format(calendar.time)
 
     val selectedDate = dateFormat.format(dateFormat.parse(dateString))
@@ -57,10 +66,10 @@ fun isDateEarlyThanToday(dateString: String): Boolean {
     return today > selectedDate
 }
 
-fun isDateToday(dateString: String): Boolean {
+fun isDateToday(dateString: String, context: Context): Boolean {
 //    LogInfo("isDateToday dateString: $dateString")
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es-ES"))
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", getLocaleByLanguage(context))
     val today = dateFormat.format(calendar.time)
 
     val selectedDate = dateFormat.format(dateFormat.parse(dateString))
@@ -68,10 +77,10 @@ fun isDateToday(dateString: String): Boolean {
     return selectedDate >= today
 }
 
-fun isDateBiggerThanToday(dateString: String): Boolean {
+fun isDateBiggerThanToday(dateString: String, context: Context): Boolean {
 //    LogInfo("isDateToday dateString: $dateString")
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es-ES"))
+    val dateFormat = SimpleDateFormat("dd-MM-yyyy", getLocaleByLanguage(context))
     val today = calendar.time
 
     val selectedDate = dateFormat.parse(dateString)
@@ -80,9 +89,9 @@ fun isDateBiggerThanToday(dateString: String): Boolean {
     return selectedDate > today
 }
 
-fun isTimeValid(time: String, dateString: String): Boolean {
+fun isTimeValid(time: String, dateString: String, context: Context): Boolean {
     val calendar = Calendar.getInstance()
-    val dateFormat = SimpleDateFormat("hh:mm a", Locale.forLanguageTag("es-ES"))
+    val dateFormat = SimpleDateFormat("hh:mm a", identificarLocaleDesdeFormatoHora(time)!!)
     val currentTime = dateFormat.parse(dateFormat.format(calendar.time))
 
     val selectedTime = dateFormat.parse(time)
@@ -91,7 +100,16 @@ fun isTimeValid(time: String, dateString: String): Boolean {
 //    LogInfo("isTimeValid selectedDate: ${dateFormat.format(selectedTime)}")
 //    LogInfo("Is time valid: ${selectedTime >= currentTime} || ${isDateBiggerThanToday(dateString)}")
 
-    return ((selectedTime >= currentTime) || isDateBiggerThanToday(dateString))
+    return ((selectedTime >= currentTime) || isDateBiggerThanToday(dateString, context))
+}
+
+fun getLocaleByLanguage(context: Context): Locale {
+val lang = getLanguage(context)
+    return if (lang == "es") {
+        Locale.forLanguageTag("es-ES")
+    } else {
+        Locale.forLanguageTag("en-US")
+    }
 }
 
 fun setLocale(activity: Activity, languageCode: String) {
@@ -103,6 +121,17 @@ fun setLocale(activity: Activity, languageCode: String) {
     config.setLocale(locale)
 
     resources.updateConfiguration(config, resources.displayMetrics)
+}
+
+fun identificarLocaleDesdeFormatoHora(formatoHora: String): Locale? {
+    LogInfo("Formato hora: $formatoHora")
+    if(formatoHora.contains("a") || formatoHora.contains("p")){
+        return Locale.forLanguageTag("es-ES")
+    }
+    if(formatoHora.contains("AM") || formatoHora.contains("PM")){
+        return Locale.forLanguageTag("en-US")
+    }
+    return null  // Si no se encontró un idioma adecuado
 }
 
 

@@ -45,7 +45,7 @@ class NotificationWorker(context: Context, params: WorkerParameters) : Worker(co
 
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_productivity_tracker)
-            .setContentTitle("Productivity App")
+            .setContentTitle(context.getString(R.string.reminder))
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)

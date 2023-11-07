@@ -27,4 +27,7 @@
     <string name="enter_time">Enter Time</string>
     <string name="switch_to_text_input">Switch to Text Input</string>
     <string name="switch_to_touch_input">Switch to Touch Input</string>
+    <string name="reminder">Reminder</string>
+    <string name="is_time_to_be_productive_set_your_tasks_for_today">Is time to be productive! Set your tasks for today.</string>
+    <string name="edit_task">Edit Task</string>
 </resources>

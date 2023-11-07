@@ -36,7 +36,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import cnovaez.dev.todoappcompose.R
 import cnovaez.dev.todoappcompose.add_tasks.ui.TaskViewModel
+import cnovaez.dev.todoappcompose.utils.curr_context
 import cnovaez.dev.todoappcompose.utils.defaultValueTimer
+import cnovaez.dev.todoappcompose.utils.getLocaleByLanguage
+import cnovaez.dev.todoappcompose.utils.identificarLocaleDesdeFormatoHora
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -58,7 +61,7 @@ fun TimePickerComponent(
     //Add the noteTime to the timePickerState
     if (noteTime.isNotEmpty() && !noteTime.equals(defaultValueTimer)) {
         val cal = Calendar.getInstance()
-        val formatter = SimpleDateFormat("hh:mm a", Locale.forLanguageTag("es-ES"))
+        val formatter = SimpleDateFormat("hh:mm a", identificarLocaleDesdeFormatoHora(noteTime) ?: getLocaleByLanguage(curr_context!!))
         cal.time = formatter.parse(noteTime)!!
         initialHour = cal.get(Calendar.HOUR_OF_DAY)
         initialMinutes = cal.get(Calendar.MINUTE)
@@ -69,7 +72,7 @@ fun TimePickerComponent(
         rememberTimePickerState()
     }
 
-    val formatter = remember { SimpleDateFormat("hh:mm a",  ) }
+    val formatter = remember { SimpleDateFormat("hh:mm a") }
     val showingPicker = remember { mutableStateOf(true) }
     val configuration = LocalConfiguration.current
 

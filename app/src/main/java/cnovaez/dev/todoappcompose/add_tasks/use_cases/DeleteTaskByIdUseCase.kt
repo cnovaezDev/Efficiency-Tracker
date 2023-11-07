@@ -8,6 +8,6 @@ import javax.inject.Inject
  ** cnovaez.dev@outlook.com
  **/
 class DeleteTaskByIdUseCase @Inject constructor(private val tasksRepository: TasksRepository) {
-    suspend operator fun invoke(taskId: String) = tasksRepository.deleteTaskById(taskId)
+    suspend operator fun invoke(taskId: Long) = tasksRepository.deleteTaskById(taskId)
 
 }

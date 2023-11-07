@@ -9,11 +9,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
@@ -23,7 +18,10 @@ import cnovaez.dev.todoappcompose.add_tasks.ui.components.TasksScreen
 import cnovaez.dev.todoappcompose.core.Routes
 import cnovaez.dev.todoappcompose.login.ui.LoginViewModel
 import cnovaez.dev.todoappcompose.login.ui.PinEntryScreen
+import cnovaez.dev.todoappcompose.utils.curr_context
+import cnovaez.dev.todoappcompose.utils.getDailyNotify
 import cnovaez.dev.todoappcompose.utils.getLanguage
+import cnovaez.dev.todoappcompose.utils.setDailyNotify
 import cnovaez.dev.todoappcompose.utils.setLanguage
 import cnovaez.dev.todoappcompose.utils.setLocale
 import com.google.android.gms.ads.AdRequest
@@ -43,7 +41,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        loadIntersitialAdd("ca-app-pub-3940256099942544/1033173712")
+        curr_context = this
+        loadIntersitialAdd("ca-app-pub-1269790857555936/4273418393")
 
         // En tu actividad o fragmento de JetPack Compose
         if (checkNotificationPermission(this)) {
@@ -55,30 +54,42 @@ class MainActivity : ComponentActivity() {
         checkAndRequestPermissions()
         loginViewModel.getLogin()
         val lang = getLanguage(this)
-        if(lang == "na"){
+
+        if (lang == "na") {
             val defaultLanguage = Locale.getDefault().language
-            setLocale(this,  defaultLanguage)
+            setLocale(this, defaultLanguage)
             setLanguage(this, defaultLanguage)
         } else {
-            setLocale(this,  lang)
+            setLocale(this, lang)
         }
+
+        val isDailyNotifySet = getDailyNotify(this)
+        if (!isDailyNotifySet) {
+            taskViewModel.scheduleSystemRepeatingNotification(this)
+            setDailyNotify(this, true)
+        }
+
         setContent {
 
-                    val navigationController = rememberNavController()
-                    NavHost(
-                        navController = navigationController,
-                        startDestination = Routes.Login.route
-                    ) {
-                        composable(Routes.Login.route) {
-                            PinEntryScreen(loginViewModel, navigationController)
-                        }
-                        composable(Routes.Tasks.route) {
-                            TasksScreen(taskViewModel = taskViewModel, navigationController, activity = this@MainActivity)
-                        }
-                    }
-
-
+            val navigationController = rememberNavController()
+            NavHost(
+                navController = navigationController,
+                startDestination = Routes.Login.route
+            ) {
+                composable(Routes.Login.route) {
+                    PinEntryScreen(loginViewModel, navigationController)
+                }
+                composable(Routes.Tasks.route) {
+                    TasksScreen(
+                        taskViewModel = taskViewModel,
+                        navigationController,
+                        activity = this@MainActivity
+                    )
+                }
             }
+
+
+        }
 
     }
 
@@ -166,6 +177,11 @@ class MainActivity : ComponentActivity() {
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
     }
 
 }

@@ -86,7 +86,7 @@ fun TasksScreen(taskViewModel: TaskViewModel, navigationController: NavHostContr
                 },
                 bottomBar = {
                     AddBannerComponent(
-                        adId = "ca-app-pub-3940256099942544/6300978111"
+                        adId = "ca-app-pub-1269790857555936/5567114920"
                     )
                 },
                 modifier = Modifier.fillMaxSize()
@@ -181,9 +181,9 @@ fun TasksScreen(taskViewModel: TaskViewModel, navigationController: NavHostContr
                                 },
                                 onDismiss = {
                                     LogInfo("SnackBar Dismissed")
-                                    snackBarVisible.second?.let { task ->
-                                        taskViewModel.deleteTask(task, context)
-                                    }
+//                                    snackBarVisible.second?.let { task ->
+//                                        taskViewModel.deleteTask(task, context)
+//                                    }
                                     taskViewModel.showDeleteSnackBar(false)
                                 },
                             )

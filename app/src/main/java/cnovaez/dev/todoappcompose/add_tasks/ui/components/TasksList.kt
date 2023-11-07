@@ -27,6 +27,7 @@ import kotlin.math.roundToInt
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TaskList(taskViewModel: TaskViewModel) {
+
     val filter by taskViewModel.showFilter.observeAsState(initial = false)
     val all_tasks = taskViewModel.taskList.sortedBy { it.isCompleted }.groupBy { it.isCompleted }
 

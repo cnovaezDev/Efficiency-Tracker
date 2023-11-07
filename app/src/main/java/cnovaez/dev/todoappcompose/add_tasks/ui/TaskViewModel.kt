@@ -14,6 +14,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import cnovaez.dev.todoappcompose.R
 import cnovaez.dev.todoappcompose.add_tasks.ui.model.TaskModel
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.DeleteTaskByIdUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.DeleteTaskUseCase
@@ -24,16 +25,23 @@ import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetTasksByFilterUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.GetTasksUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.InsertTaskUseCase
 import cnovaez.dev.todoappcompose.add_tasks.use_cases.UpdateTaskUseCase
+import cnovaez.dev.todoappcompose.utils.curr_context
+import cnovaez.dev.todoappcompose.utils.getLocaleByLanguage
+import cnovaez.dev.todoappcompose.utils.identificarLocaleDesdeFormatoHora
 import cnovaez.dev.todoappcompose.utils.isDateEarlyThanToday
 import cnovaez.dev.todoappcompose.utils.logs.LogError
 import cnovaez.dev.todoappcompose.utils.logs.LogInfo
 import cnovaez.dev.todoappcompose.utils.notifications.NotificationWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.Timer
+import java.util.TimerTask
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -183,7 +191,8 @@ class TaskViewModel @Inject constructor(
             viewModelScope.launch {
                 _taskList.clear()
                 val tasks = getTasksUseCase(_displayedDate.value ?: today)
-                val repeatTasks = tasks.filter { it.repeat && isDateEarlyThanToday(it.date) }
+                val repeatTasks =
+                    tasks.filter { it.repeat && isDateEarlyThanToday(it.date, curr_context!!) }
                 if (repeatTasks.isEmpty()) {
                     _taskList.addAll(if (tasks.isNotEmpty()) tasks.map { it.toModel() } else emptyList())
                 } else {
@@ -222,10 +231,11 @@ class TaskViewModel @Inject constructor(
             val neo_task = task.copy(isCompleted = !task.isCompleted)
 
             //? To avoid the flickering effect when the checkbox is clicked
-            _taskList[index] = neo_task
+            //     _taskList[index] = neo_task
 
             viewModelScope.launch {
                 updateTaskUseCase(neo_task.toEntity())
+                loadTasksList()
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -233,17 +243,16 @@ class TaskViewModel @Inject constructor(
         }
     }
 
-    fun deleteTaskFromMemory(task: TaskModel?) {
+    private var currentDeletedTask: TaskModel? = null
+    fun deleteTaskFromMemory(task: TaskModel) {
         try {
             viewModelScope.launch {
-                if (task != null) {
-                   _taskList.removeIf { task.id == it.id }
-                } else {
-                    LogError("Task is null")
-                }
+                currentDeletedTask = task
+                deleteTaskByIdUseCase(task.id)
+                loadTasksList()
             }
 
-        }catch (ex: Exception){
+        } catch (ex: Exception) {
             ex.printStackTrace()
             LogError("Error deleting task from memory", ex)
         }
@@ -260,8 +269,19 @@ class TaskViewModel @Inject constructor(
 
     fun getCurrentDateFormatted(): String {
         val calendar = Calendar.getInstance()
-        val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es-ES"))
+        val dateFormat = SimpleDateFormat("dd-MM-yyyy", getLocaleByLanguage(curr_context!!))
         return dateFormat.format(calendar.time)
+    }
+
+//    fun getCurrentTimeFormatted(): String {
+//        val calendar = Calendar.getInstance()
+//        val dateFormat = SimpleDateFormat("hh:mm a", identificarLocaleDesdeFormatoHora(time) ?: getLocaleByLanguage(context))
+//        return dateFormat.format(calendar.time)
+//    }
+
+    fun getTimeFormatted(time: String): String {
+        val dateFormat = SimpleDateFormat("hh:mm a", Locale.US)
+        return dateFormat.format(dateFormat.parse(time)!!)
     }
 
     fun displayedDate(stringDate: String) {
@@ -273,7 +293,13 @@ class TaskViewModel @Inject constructor(
     }
 
     fun reloadTasksList() {
-        loadTasksList()
+        viewModelScope.launch {
+            if (currentDeletedTask != null) {
+                insertTaskUseCase(currentDeletedTask!!.toEntity())
+                currentDeletedTask = null
+            }
+            loadTasksList()
+        }
     }
 
     fun showFilter(value: Boolean) {
@@ -284,15 +310,33 @@ class TaskViewModel @Inject constructor(
         _showTimePicker.value = value
     }
 
+    var timer: Timer = Timer()
+
     fun updateSearchQuery(filter: String) {
         searchQuery.value = filter
-        viewModelScope.launch {
-            val filterTasks = getTaskByFilterUseCase(filter.trim(), _displayedDate.value ?: today)
-            _taskList.clear()
-            if (filterTasks.isNotEmpty()) {
-                _taskList.addAll(filterTasks.map { it.toModel() })
+        timer?.cancel()
+        timer = Timer()
+
+        timer?.schedule(object : TimerTask() {
+            override fun run() {
+                viewModelScope.launch {
+                    withContext(Dispatchers.Main) {
+                        _taskList.clear()
+                    }
+
+                    val filterTasks =
+                        getTaskByFilterUseCase(filter.trim(), _displayedDate.value ?: today)
+
+                    if (filterTasks.isNotEmpty()) {
+                        withContext(Dispatchers.Main) {
+
+                            _taskList.addAll(filterTasks.map { it.toModel() })
+                        }
+                    }
+                }
             }
-        }
+        }, 600)
+
     }
 
     fun scheduleNotification(
@@ -363,14 +407,75 @@ class TaskViewModel @Inject constructor(
         }
     }
 
+
+    fun scheduleSystemRepeatingNotification(
+        context: Context,
+        notificationId: Int = "ProductivityApp".hashCode()
+    ) {
+        val notificationMessage =
+            context.getString(R.string.is_time_to_be_productive_set_your_tasks_for_today)
+        LogInfo(
+            "Attempting to schedule a repeating notification for ${getCurrentDateFormatted()} ${
+                getTimeFormatted(
+                    "10:00 AM"
+                )
+            } with message: $notificationMessage"
+        )
+
+        val workManager = WorkManager.getInstance(context)
+
+        val dateTime =
+            combineSystemDateTime(getCurrentDateFormatted(), getTimeFormatted("10:00 AM"))
+
+        if (dateTime != null) {
+            val notificationData = Data.Builder()
+                .putString("message", notificationMessage)
+                .putInt("notificationId", notificationId)
+                .build()
+
+            val currentTime = System.currentTimeMillis()
+            val initialDelay = dateTime.time - currentTime
+            val repeatInterval = TimeUnit.DAYS.toMillis(1)  // 1 día en milisegundos
+
+            val notificationRequest = PeriodicWorkRequestBuilder<NotificationWorker>(
+                repeatInterval,
+                TimeUnit.MILLISECONDS
+            )
+                .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+                .setInputData(notificationData)
+                .build()
+
+            workManager.enqueueUniquePeriodicWork(
+                "repeating_notification",
+                ExistingPeriodicWorkPolicy.REPLACE,
+                notificationRequest
+            )
+            LogInfo("Repeating Notification scheduled successfully")
+        }
+    }
+
     private fun combineDateTime(date: String, time: String): Date? {
         val dateTimeString = "$date $time"
-        val dateTimeFormat = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.forLanguageTag("es-ES"))
+        val dateTimeFormat = SimpleDateFormat("dd-MM-yyyy hh:mm a",getLocaleByLanguage(curr_context!!))
 
         return try {
             dateTimeFormat.parse(dateTimeString)
         } catch (e: Exception) {
             // Manejar errores en el formato de fecha y hora
+            e.printStackTrace()
+            null
+        }
+    }
+
+    private fun combineSystemDateTime(date: String, time: String): Date? {
+        val dateTimeString = "$date $time"
+        val dateTimeFormat = SimpleDateFormat("dd-MM-yyyy hh:mm a", Locale.US)
+
+        return try {
+            dateTimeFormat.parse(dateTimeString)
+        } catch (e: Exception) {
+            // Manejar errores en el formato de fecha y hora
+            e.printStackTrace()
             null
         }
     }
@@ -384,6 +489,9 @@ class TaskViewModel @Inject constructor(
     }
 
     fun showDeleteSnackBar(b: Boolean, task: TaskModel? = null) {
+        if(!b){
+            currentDeletedTask = null
+        }
         _showDeleteSnackBar.value = Pair(b, task)
     }
 

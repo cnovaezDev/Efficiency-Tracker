@@ -2,6 +2,8 @@ package cnovaez.dev.todoappcompose.utils.logs
 
 import android.content.Context
 import android.util.Log
+import cnovaez.dev.todoappcompose.utils.curr_context
+import cnovaez.dev.todoappcompose.utils.getLocaleByLanguage
 import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -48,7 +50,7 @@ class FileLoggingTree(private val context: Context) : Timber.Tree() {
 
 
     fun getDateAndTime(): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.forLanguageTag("es-ES"))
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", getLocaleByLanguage(curr_context!!))
         return dateFormat.format(Date())
     }
 

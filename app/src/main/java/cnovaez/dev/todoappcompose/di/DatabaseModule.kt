@@ -5,6 +5,7 @@ import androidx.room.Room
 import cnovaez.dev.todoappcompose.add_tasks.data.TodoDatabase
 import cnovaez.dev.todoappcompose.core.migracion1a2
 import cnovaez.dev.todoappcompose.core.migracion2a3
+import cnovaez.dev.todoappcompose.core.migracion3a4
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,6 +33,7 @@ object DatabaseModule {
         )
             .addMigrations(migracion1a2)
             .addMigrations(migracion2a3)
+            .addMigrations(migracion3a4)
             .build()
     }
 

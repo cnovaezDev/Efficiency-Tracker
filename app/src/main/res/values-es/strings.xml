@@ -27,4 +27,7 @@
     <string name="enter_time">Introduce Hora</string>
     <string name="switch_to_text_input">Cambiar a ingreso escrito</string>
     <string name="switch_to_touch_input">Cambiar a ingreso por selección</string>
+    <string name="reminder">Recordatorio</string>
+    <string name="is_time_to_be_productive_set_your_tasks_for_today">¡Es hora de ser productivo! Establece tus tareas para hoy.</string>
+    <string name="edit_task">Editar Tarea</string>
 </resources>

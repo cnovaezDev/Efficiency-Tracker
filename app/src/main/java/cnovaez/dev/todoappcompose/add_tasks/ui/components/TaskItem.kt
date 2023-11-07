@@ -42,7 +42,7 @@ fun TaskItem(task: TaskModel, taskViewModel: TaskViewModel) {
     val context = LocalContext.current
     val mode = getMode(context)
     val nightMode by taskViewModel.nightMode.observeAsState(initial = mode == MODE_DARK)
-    if (isDateEarlyThanToday(task.date)) Text(text = task.date, color = Color(0xFFE23232), fontSize = 10.sp, modifier = Modifier.padding(start = 16.dp))
+    if (isDateEarlyThanToday(task.date, context)) Text(text = task.date, color = Color(0xFFE23232), fontSize = 10.sp, modifier = Modifier.padding(start = 16.dp))
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -58,7 +58,7 @@ fun TaskItem(task: TaskModel, taskViewModel: TaskViewModel) {
                 )
             },
         colors = CardColors(
-            containerColor = if (!isDateToday(task.date)) (if (!nightMode) Color(0xFFF5A1A1) else Color(
+            containerColor = if (!isDateToday(task.date, context)) (if (!nightMode) Color(0xFFF5A1A1) else Color(
                 0xFF692C2C
             )) else if (!nightMode) Color.LightGray else Color.DarkGray,
             contentColor = Color.Black,
@@ -86,7 +86,7 @@ fun TaskItem(task: TaskModel, taskViewModel: TaskViewModel) {
             }
             if (task.notify) {
                 Icon(
-                    imageVector = if (isDateToday(task.date) && isTimeValid(task.time, task.date)) Icons.Filled.NotificationsActive else Icons.Filled.NotificationsOff,
+                    imageVector = if (isDateToday(task.date, context) && isTimeValid(task.time, task.date, context)) Icons.Filled.NotificationsActive else Icons.Filled.NotificationsOff,
                     contentDescription = "",
                     tint = if (nightMode) Color.LightGray else Color.Black,
                 )
