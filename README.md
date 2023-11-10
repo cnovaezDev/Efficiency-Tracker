@@ -16,10 +16,8 @@ Key Features:
 
 # Example Designs
 
-![pic1min](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/1e385ac1-fad2-4b51-a264-57449d9e20a6)
+![pic2min](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/0461f50a-c204-4a55-a72a-843891178517)
 
-![Screenshot_20231106-173259](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/3a7ff588-1d86-405d-9cad-75a71ffb3619)
+![pic1min](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/9736a806-53fa-4e5a-a0c8-544316719183)
 
-![Screenshot_20231106-172902](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/b5ef650c-6cf7-44b3-beb8-594c574446c0)
-
-![Screenshot_20231106-172843](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/81d58349-9488-4a4b-a960-da15ae4fb83c)
+![pic3min](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/cedbc2fc-0357-4d04-8b94-c10575a427a8)
