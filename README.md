@@ -16,7 +16,7 @@ Key Features:
 
 # Example Designs
 
-![Screenshot_20231106-173453](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/d33e21c0-18ad-4daf-b0e4-4c2541adade5)
+![pic1min](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/1e385ac1-fad2-4b51-a264-57449d9e20a6)
 
 ![Screenshot_20231106-173259](https://github.com/cnovaezDev/Efficiency-Tracker/assets/103778694/3a7ff588-1d86-405d-9cad-75a71ffb3619)
 
