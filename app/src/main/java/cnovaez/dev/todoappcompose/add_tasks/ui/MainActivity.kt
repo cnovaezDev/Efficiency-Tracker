@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         curr_context = this
-        loadIntersitialAdd("ca-app-pub-1269790857555936/4273418393")
+        loadIntersitialAdd("ca-app-pub-1269790857555936/4273418123")
 
         // En tu actividad o fragmento de JetPack Compose
         if (checkNotificationPermission(this)) {

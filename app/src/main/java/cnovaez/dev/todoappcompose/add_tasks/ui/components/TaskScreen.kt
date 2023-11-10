@@ -86,7 +86,7 @@ fun TasksScreen(taskViewModel: TaskViewModel, navigationController: NavHostContr
                 },
                 bottomBar = {
                     AddBannerComponent(
-                        adId = "ca-app-pub-1269790857555936/5567114920"
+                        adId = "ca-app-pub-1269790857555936/5567114111"
                     )
                 },
                 modifier = Modifier.fillMaxSize()
