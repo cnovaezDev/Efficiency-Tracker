@@ -1,6 +1,6 @@
-# Efficiency Tracker (JetPack Compose - MVVM - Clean Architecture - ROOM - Dagger-Hilt - Work Manager)
+# Efficiency Tracker
 App designed solely and exclusively to increase your productivity.
-Enhance your productivity with our sleek and minimalist app designed to help you focus on what truly matters. Stay organized, save time, and monitor your progress on the path to becoming your most efficient and productive self.
+Enhance your productivity with our sleek and minimalist app designed to help you focus on what truly matters. Stay organized, save time, and monitor your progress on the path to becoming your most efficient and productive self. [JetPack Compose - MVVM - Clean Architecture - ROOM - Dagger-Hilt - Work Manager]
 
 # Key Features:
 - Streamlined, concise task management. Time is valuable; make every moment count!
